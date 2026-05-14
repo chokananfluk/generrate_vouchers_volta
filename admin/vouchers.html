@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Voucher — Admin: จัดการ Voucher</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+<div id="loading-overlay"><div class="spinner"></div><span style="color:#7E00A8;font-weight:600">กำลังโหลด...</span></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo.png" alt="Volta Voucher" onerror="this.outerHTML='<div style=\'font-size:20px;font-weight:900;color:#B000D4\'>⚡ Volta Voucher</div>'">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Admin</div>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="vouchers.html"  class="nav-link active"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="users.html"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="help.html"      class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar" style="background:linear-gradient(135deg,#D100FF,#7A2CFF)">A</div>
+        <div class="user-info"><div class="name" id="nav-user-name">Admin</div><div class="role" style="color:#B000D4">ผู้ดูแลระบบ</div></div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">จัดการ Voucher</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="search-input" placeholder="ค้นหาชื่อ / อีเมล..." oninput="filterBatches()" style="padding-left:36px;width:240px">
+        </div>
+        <select class="form-control" id="status-filter" onchange="filterBatches()" style="width:180px">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="pending_receipt">รอแนบใบเสร็จ</option>
+          <option value="pending_approval">รออนุมัติ</option>
+          <option value="approved">อนุมัติแล้ว</option>
+          <option value="rejected">ตีกลับ</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadBatches()">🔄 รีเฟรช</button>
+        <div style="margin-left:auto;font-size:13px;color:#6B6B8A">รวม <strong id="total-count">—</strong> รายการ</div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ผู้ขอ</th>
+                <th>แผนก/กอง</th>
+                <th>มูลค่า/ใบ</th>
+                <th>จำนวน</th>
+                <th>Lot</th>
+                <th>วันที่สร้าง</th>
+                <th>สถานะ</th>
+                <th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody id="batch-tbody">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:#9CA3AF">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: DETAIL & APPROVE ============================================================ -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <span class="modal-title">ตรวจสอบคำขอ Voucher</span>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"><div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div></div>
+    <div class="modal-footer" id="detail-footer"></div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: APPROVE CONFIRM ============================================================ -->
+<div class="modal-overlay" id="modal-approve">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#15803D">✅ ยืนยันการอนุมัติ</span>
+      <button class="modal-close" onclick="closeModal('modal-approve')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A;margin-bottom:16px">ระบบจะสร้างรหัส Voucher ทันทีหลังอนุมัติ</p>
+      <div class="form-group">
+        <label class="form-label">หมายเหตุถึงผู้ใช้ (ไม่บังคับ)</label>
+        <textarea id="approve-notes" class="form-control" placeholder="ข้อความถึงผู้ขอ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-approve')">ยกเลิก</button>
+      <button class="btn btn-success" onclick="confirmApprove()">✅ อนุมัติ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: REJECT CONFIRM ============================================================ -->
+<div class="modal-overlay" id="modal-reject">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#DC2626">✗ ตีกลับคำขอ</span>
+      <button class="modal-close" onclick="closeModal('modal-reject')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A;margin-bottom:16px">ผู้ใช้จะได้รับการแจ้งเตือนทางอีเมลพร้อมเหตุผล</p>
+      <div class="form-group">
+        <label class="form-label">เหตุผลที่ตีกลับ <span class="required">*</span></label>
+        <textarea id="reject-notes" class="form-control" placeholder="ระบุเหตุผล..." required></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-reject')">ยกเลิก</button>
+      <button class="btn btn-danger" onclick="confirmReject()">✗ ตีกลับ</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+let allBatches   = [];
+let currentPage  = 1;
+const PER_PAGE   = 15;
+let currentBatchId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+
+  // Pre-filter from URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('status')) document.getElementById('status-filter').value = params.get('status');
+
+  await loadBatches();
+
+  // Open detail from hash
+  if (window.location.hash) {
+    const id = window.location.hash.replace('#','');
+    if (id) setTimeout(() => openDetail(id), 600);
+  }
+});
+
+async function loadBatches() {
+  setLoading(true);
+  try {
+    allBatches = (await API.getAllBatches()) || [];
+    filterBatches();
+  } catch(e) { showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error'); }
+  finally { setLoading(false); }
+}
+
+function filterBatches() {
+  currentPage = 1;
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('status-filter').value;
+
+  const filtered = allBatches.filter(b => {
+    const matchStatus = !status || b.status === status;
+    const name  = ((b.users?.first_name||'') + ' ' + (b.users?.last_name||'')).toLowerCase();
+    const email = (b.users?.email||'').toLowerCase();
+    const matchSearch = !search || name.includes(search) || email.includes(search) || b.id.toLowerCase().includes(search);
+    return matchStatus && matchSearch;
+  });
+
+  document.getElementById('total-count').textContent = filtered.length;
+  renderTable(filtered);
+}
+
+function renderTable(filtered) {
+  const paged = paginate(filtered, currentPage, PER_PAGE);
+  const tbody = document.getElementById('batch-tbody');
+
+  if (paged.items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px;color:#9CA3AF"><div style="font-size:40px;margin-bottom:8px">🎫</div>ไม่พบคำขอ</td></tr>`;
+  } else {
+    tbody.innerHTML = paged.items.map((b, i) => `
+      <tr>
+        <td style="font-size:12px;color:#9CA3AF">${(currentPage-1)*PER_PAGE+i+1}</td>
+        <td>
+          <div style="font-weight:600">${esc(b.users?.first_name||'')} ${esc(b.users?.last_name||'')}</div>
+          <div style="font-size:12px;color:#6B6B8A">${esc(b.users?.email||'')}</div>
+        </td>
+        <td style="font-size:13px;color:#6B6B8A">${esc(b.users?.department||'-')}</td>
+        <td><strong>${fmtMoney(b.value_thb)}</strong> ฿</td>
+        <td>${b.quantity} ใบ</td>
+        <td><span class="badge badge-purple">Lot ${String(b.lot_number).padStart(2,'0')}</span></td>
+        <td style="font-size:12px;color:#6B6B8A;white-space:nowrap">${fmtDateTime(b.created_at)}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="openDetail('${b.id}')">🔍 ดู</button>
+            ${b.status === 'pending_approval' ? `
+              <button class="btn btn-success btn-sm" onclick="askApprove('${b.id}')">✅ อนุมัติ</button>
+              <button class="btn btn-danger  btn-sm" onclick="askReject('${b.id}')">✗ ตีกลับ</button>` : ''}
+            ${b.status === 'approved' ? `<button class="btn btn-outline btn-sm" onclick="API.downloadCsv('${b.id}')">⬇ CSV</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  const pgEl = document.getElementById('pagination');
+  if (paged.pages <= 1) { pgEl.innerHTML = ''; return; }
+  let pgHtml = `<button class="page-btn" ${!paged.hasPrev?'disabled':''} onclick="goPage(${currentPage-1})">‹</button>`;
+  for (let p = 1; p <= paged.pages; p++) {
+    pgHtml += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  pgHtml += `<button class="page-btn" ${!paged.hasNext?'disabled':''} onclick="goPage(${currentPage+1})">›</button>`;
+  pgEl.innerHTML = pgHtml;
+}
+
+function goPage(p) { currentPage = p; filterBatches(); }
+
+async function openDetail(batchId) {
+  currentBatchId = batchId;
+  openModal('modal-detail');
+  document.getElementById('detail-body').innerHTML   = '<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
+  document.getElementById('detail-footer').innerHTML = '';
+  try {
+    const b = await API.getBatchDetail(batchId);
+    let codesHtml = '';
+    if (b.status === 'approved') {
+      const codes = await API.getBatchCodes(batchId);
+      codesHtml = `
+        <div class="divider"></div>
+        <div style="font-weight:700;margin-bottom:8px">รหัส Voucher (${codes.length} ใบ)</div>
+        <div style="max-height:320px;overflow-y:auto;border:1px solid #EDE9F6;border-radius:8px">
+          <table><thead><tr><th>#</th><th>Code</th><th>มูลค่า</th><th>วันหมดอายุ</th><th>Duration</th></tr></thead>
+          <tbody>${codes.map((c,i)=>`<tr>
+            <td style="color:#9CA3AF">${i+1}</td>
+            <td><code style="font-size:13px;font-weight:700;color:#B000D4;letter-spacing:1px">${esc(c.code)}</code></td>
+            <td>${fmtMoney(c.value_thb)} ฿</td>
+            <td>${c.expire_date?fmtDate(c.expire_date):'-'}</td>
+            <td>${c.duration_days||0}</td>
+          </tr>`).join('')}</tbody></table>
+        </div>`;
+    }
+
+    document.getElementById('detail-body').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div><div style="font-size:12px;color:#6B6B8A">ผู้ขอ</div><strong>${esc(b.users?.first_name||'')} ${esc(b.users?.last_name||'')}</strong><div style="font-size:12px;color:#6B6B8A">${esc(b.users?.email||'')}</div></div>
+        <div><div style="font-size:12px;color:#6B6B8A">สถานะ</div>${statusBadge(b.status)}</div>
+        <div><div style="font-size:12px;color:#6B6B8A">มูลค่า/ใบ</div><strong>${fmtMoney(b.value_thb)} บาท</strong></div>
+        <div><div style="font-size:12px;color:#6B6B8A">จำนวน</div><strong>${b.quantity} ใบ</strong></div>
+        <div><div style="font-size:12px;color:#6B6B8A">มูลค่ารวม</div><strong style="color:#B000D4;font-size:18px">${fmtMoney(parseFloat(b.value_thb)*b.quantity)} บาท</strong></div>
+        <div><div style="font-size:12px;color:#6B6B8A">Lot</div><span class="badge badge-purple">Lot ${String(b.lot_number).padStart(2,'0')}</span></div>
+        <div><div style="font-size:12px;color:#6B6B8A">วันเริ่มใช้</div>${b.start_date?fmtDate(b.start_date):'ไม่กำหนด'}</div>
+        <div><div style="font-size:12px;color:#6B6B8A">วันหมดอายุ</div>${b.expire_date?fmtDate(b.expire_date):'ไม่กำหนด'}</div>
+        <div><div style="font-size:12px;color:#6B6B8A">ระยะหลังใช้</div>${b.duration_days>0?b.duration_days+' วัน':'ไม่กำหนด'}</div>
+        <div><div style="font-size:12px;color:#6B6B8A">วันที่สร้าง</div>${fmtDateTime(b.created_at)}</div>
+      </div>
+      ${b.notes?`<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ User:</strong> ${esc(b.notes)}</div>`:''}
+      ${b.admin_notes?`<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>`:''}
+      ${b.receipt_url?`<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จแนบ</a></div>`:'<div style="background:#FEE2E2;padding:10px;border-radius:8px;font-size:13px;color:#B91C1C;margin-bottom:12px">⚠️ ยังไม่มีใบเสร็จแนบ</div>'}
+      ${codesHtml}`;
+
+    const footer = document.getElementById('detail-footer');
+    if (b.status === 'pending_approval') {
+      footer.innerHTML = `
+        <button class="btn btn-danger"  onclick="closeModal('modal-detail');askReject('${b.id}')">✗ ตีกลับ</button>
+        <button class="btn btn-success" onclick="closeModal('modal-detail');askApprove('${b.id}')">✅ อนุมัติ</button>`;
+    } else if (b.status === 'approved') {
+      footer.innerHTML = `<button class="btn btn-success" onclick="API.downloadCsv('${b.id}')">⬇ Export CSV</button>`;
+    }
+  } catch(e) {
+    document.getElementById('detail-body').innerHTML = `<div style="color:#DC2626;padding:20px">${e.message}</div>`;
+  }
+}
+
+function askApprove(id) { currentBatchId = id; document.getElementById('approve-notes').value=''; openModal('modal-approve'); }
+function askReject(id)  { currentBatchId = id; document.getElementById('reject-notes').value='';  openModal('modal-reject');  }
+
+async function confirmApprove() {
+  const notes = document.getElementById('approve-notes').value;
+  try {
+    setLoading(true);
+    await API.approveBatch(currentBatchId, notes);
+    closeModal('modal-approve');
+    showToast('อนุมัติและสร้าง Voucher สำเร็จ!', 'success');
+    await loadBatches();
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+  finally { setLoading(false); }
+}
+
+async function confirmReject() {
+  const notes = document.getElementById('reject-notes').value.trim();
+  if (!notes) { showToast('กรุณาระบุเหตุผลการตีกลับ', 'error'); return; }
+  try {
+    await API.rejectBatch(currentBatchId, notes);
+    closeModal('modal-reject');
+    showToast('ตีกลับคำขอเรียบร้อย', 'success');
+    await loadBatches();
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+}
+</script>
+</body>
+</html>

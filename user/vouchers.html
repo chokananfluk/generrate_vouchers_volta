@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Voucher — Voucher ของฉัน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+
+<div id="loading-overlay"><div class="spinner"></div><span style="color:#7E00A8;font-weight:600">กำลังโหลด...</span></div>
+
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo.png" alt="Volta Voucher"
+           onerror="this.outerHTML='<div style=\'font-size:20px;font-weight:900;color:#B000D4\'>⚡ Volta Voucher</div>'">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">เมนูหลัก</div>
+      <a href="dashboard.html" class="nav-link" data-page="dashboard"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="vouchers.html"  class="nav-link active" data-page="vouchers"><span class="nav-icon">🎫</span> Voucher ของฉัน</a>
+      <div class="nav-section-title" style="margin-top:8px">บัญชี</div>
+      <a href="account.html" class="nav-link" data-page="account"><span class="nav-icon">👤</span> บัญชีผู้ใช้</a>
+      <a href="help.html"    class="nav-link" data-page="help"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar">?</div>
+        <div class="user-info">
+          <div class="name" id="nav-user-name">...</div>
+          <div class="role">ผู้ใช้งาน</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">Voucher ของฉัน</span>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-create')">+ สร้าง Voucher</button>
+    </header>
+
+    <div class="page-content">
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="search-input" placeholder="ค้นหา..." oninput="filterBatches()" style="padding-left:36px;width:220px">
+        </div>
+        <select class="form-control" id="status-filter" onchange="filterBatches()" style="width:160px">
+          <option value="">สถานะทั้งหมด</option>
+          <option value="pending_receipt">รอแนบใบเสร็จ</option>
+          <option value="pending_approval">รออนุมัติ</option>
+          <option value="approved">อนุมัติแล้ว</option>
+          <option value="rejected">ตีกลับ</option>
+          <option value="cancelled">ยกเลิก</option>
+        </select>
+      </div>
+
+      <!-- Batch table -->
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>วันที่สร้าง</th>
+                <th>มูลค่า/ใบ</th>
+                <th>จำนวน</th>
+                <th>Lot</th>
+                <th>วันหมดอายุ</th>
+                <th>สถานะ</th>
+                <th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody id="batch-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:#9CA3AF">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CREATE VOUCHER
+     ============================================================ -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">สร้างคำขอ Voucher</span>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Steps -->
+      <div class="steps">
+        <div class="step active" id="step1-ind">
+          <div class="step-num">1</div>
+          <div class="step-label">ข้อมูล Voucher</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step2-ind">
+          <div class="step-num">2</div>
+          <div class="step-label">ยืนยัน</div>
+        </div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="step1-body">
+        <div class="form-group">
+          <label class="form-label">มูลค่า Voucher (บาท) <span class="required">*</span></label>
+          <div class="value-selector" id="value-chips">
+            <div class="value-chip" onclick="selectValue(20)"   data-val="20">฿20</div>
+            <div class="value-chip" onclick="selectValue(50)"   data-val="50">฿50</div>
+            <div class="value-chip" onclick="selectValue(100)"  data-val="100">฿100</div>
+            <div class="value-chip" onclick="selectValue(200)"  data-val="200">฿200</div>
+            <div class="value-chip" onclick="selectValue(500)"  data-val="500">฿500</div>
+            <div class="value-chip" onclick="selectValue(1000)" data-val="1000">฿1,000</div>
+            <div class="value-chip" onclick="selectValue('custom')" data-val="custom">ระบุเอง</div>
+          </div>
+          <input type="number" id="custom-value" class="form-control" placeholder="ระบุมูลค่า (บาท)" min="1" style="display:none;margin-top:8px">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">จำนวน Voucher <span class="required">*</span></label>
+            <input type="number" id="quantity" class="form-control" placeholder="เช่น 100" min="1" max="10000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ระยะเวลาหลังใช้งาน (วัน)</label>
+            <input type="number" id="duration-days" class="form-control" placeholder="0 = ไม่กำหนด" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">วันเริ่มใช้งาน</label>
+            <input type="date" id="start-date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันหมดอายุ</label>
+            <input type="date" id="expire-date" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">หมายเหตุ</label>
+          <textarea id="notes" class="form-control" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+        </div>
+
+        <div id="step1-error" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px"></div>
+      </div>
+
+      <!-- Step 2: Confirm -->
+      <div id="step2-body" style="display:none">
+        <div style="background:#F4F0FF;border-radius:12px;padding:20px;margin-bottom:16px">
+          <div style="font-size:15px;font-weight:700;color:#7E00A8;margin-bottom:12px">สรุปคำขอ</div>
+          <table style="width:100%;font-size:14px">
+            <tr><td style="padding:4px 0;color:#6B6B8A;width:45%">มูลค่าต่อใบ</td><td id="confirm-value" style="font-weight:700"></td></tr>
+            <tr><td style="padding:4px 0;color:#6B6B8A">จำนวน</td>         <td id="confirm-qty"    style="font-weight:700"></td></tr>
+            <tr><td style="padding:4px 0;color:#6B6B8A">มูลค่ารวม</td>     <td id="confirm-total"  style="font-weight:700;color:#B000D4"></td></tr>
+            <tr><td style="padding:4px 0;color:#6B6B8A">วันเริ่ม</td>      <td id="confirm-start"  style="font-weight:600"></td></tr>
+            <tr><td style="padding:4px 0;color:#6B6B8A">วันหมดอายุ</td>    <td id="confirm-expire" style="font-weight:600"></td></tr>
+            <tr><td style="padding:4px 0;color:#6B6B8A">ระยะหลังใช้</td>   <td id="confirm-dur"    style="font-weight:600"></td></tr>
+          </table>
+        </div>
+        <p style="font-size:13px;color:#6B6B8A;background:#FEF9C3;padding:12px;border-radius:8px">
+          ⚠️ หลังจากกดยืนยัน คุณจะต้องแนบใบเสร็จชำระเงินก่อนที่ Admin จะอนุมัติ
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btn-back" onclick="goStep(1)" style="display:none">← ย้อนกลับ</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-create')">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-next" onclick="goStep(2)">ถัดไป →</button>
+      <button class="btn btn-primary" id="btn-submit" onclick="submitCreate()" style="display:none">✓ ยืนยันคำขอ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: ATTACH RECEIPT
+     ============================================================ -->
+<div class="modal-overlay" id="modal-receipt">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">แนบใบเสร็จ</span>
+      <button class="modal-close" onclick="closeModal('modal-receipt')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A;margin-bottom:16px">
+        กรุณาแนบไฟล์ใบเสร็จหรือหลักฐานการชำระเงิน (PDF, JPG, PNG ขนาดไม่เกิน 10MB)
+      </p>
+      <div class="file-drop" id="file-drop-zone" onclick="document.getElementById('receipt-file').click()"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="handleFileDrop(event)">
+        <div class="file-drop-icon">📎</div>
+        <div class="file-drop-text">ลากไฟล์มาวางที่นี่ หรือ <span class="file-drop-link">เลือกไฟล์</span></div>
+        <div style="font-size:12px;color:#BDB8CC;margin-top:4px">PDF, JPG, PNG ≤ 10MB</div>
+      </div>
+      <input type="file" id="receipt-file" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+      <div id="receipt-preview" style="display:none;margin-top:12px"></div>
+      <div id="receipt-error" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-receipt')">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-attach" onclick="submitReceipt()" disabled>📤 ส่งคำขออนุมัติ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: BATCH DETAIL / PREVIEW
+     ============================================================ -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <span class="modal-title">รายละเอียดคำขอ</span>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body">กำลังโหลด...</div>
+    <div class="modal-footer" id="detail-footer"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CANCEL CONFIRM
+     ============================================================ -->
+<div class="modal-overlay" id="modal-cancel">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title">ยืนยันการยกเลิก</span>
+      <button class="modal-close" onclick="closeModal('modal-cancel')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A">คุณต้องการยกเลิกคำขอนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-cancel')">ไม่ยกเลิก</button>
+      <button class="btn btn-danger"  onclick="confirmCancel()">ยกเลิกคำขอ</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+let allBatches = [];
+let currentPage = 1;
+const PER_PAGE = 10;
+let selectedValue = null;
+let selectedFile   = null;
+let currentBatchId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireLogin()) return;
+  if (Auth.isAdmin()) { window.location.href = '../admin/dashboard.html'; return; }
+
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+
+  // Open detail from hash
+  if (window.location.hash) {
+    const id = window.location.hash.replace('#','');
+    if (id) setTimeout(() => openDetail(id), 500);
+  }
+
+  await loadBatches();
+});
+
+async function loadBatches() {
+  setLoading(true);
+  try {
+    allBatches = (await API.getUserBatches()) || [];
+    renderTable();
+  } catch(e) { showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error'); }
+  finally { setLoading(false); }
+}
+
+function filterBatches() {
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('status-filter').value;
+
+  let filtered = allBatches.filter(b => {
+    const matchStatus = !status || b.status === status;
+    const matchSearch = !search || b.id.toLowerCase().includes(search)
+      || String(b.value_thb).includes(search);
+    return matchStatus && matchSearch;
+  });
+
+  const paged  = paginate(filtered, currentPage, PER_PAGE);
+  const tbody  = document.getElementById('batch-tbody');
+
+  if (paged.items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:#9CA3AF">
+      <div style="font-size:40px;margin-bottom:8px">🎫</div>
+      ไม่พบคำขอ ${allBatches.length === 0 ? '— <a href="#" onclick="openModal(\'modal-create\');return false" style="color:#B000D4;font-weight:600">สร้างรายการแรก</a>' : ''}
+    </td></tr>`;
+  } else {
+    tbody.innerHTML = paged.items.map((b, i) => `
+      <tr>
+        <td style="font-size:12px;color:#9CA3AF">${(currentPage-1)*PER_PAGE+i+1}</td>
+        <td style="font-size:13px;color:#6B6B8A;white-space:nowrap">${fmtDateTime(b.created_at)}</td>
+        <td><strong>${fmtMoney(b.value_thb)}</strong> ฿</td>
+        <td>${b.quantity} ใบ</td>
+        <td><span class="badge badge-purple">Lot ${String(b.lot_number).padStart(2,'0')}</span></td>
+        <td style="font-size:13px">${b.expire_date ? fmtDate(b.expire_date) : '<span style="color:#BDB8CC">ไม่กำหนด</span>'}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="openDetail('${b.id}')">ดู</button>
+            ${b.status === 'pending_receipt' || b.status === 'rejected'
+              ? `<button class="btn btn-primary btn-sm" onclick="openReceiptModal('${b.id}')">📎 แนบใบเสร็จ</button>` : ''}
+            ${b.status === 'pending_receipt' || b.status === 'pending_approval'
+              ? `<button class="btn btn-danger btn-sm" onclick="askCancel('${b.id}')">✕</button>` : ''}
+            ${b.status === 'approved'
+              ? `<button class="btn btn-success btn-sm" onclick="API.downloadCsv('${b.id}')">⬇ CSV</button>` : ''}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Pagination
+  const pgEl = document.getElementById('pagination');
+  if (paged.pages <= 1) { pgEl.innerHTML = ''; return; }
+  let pgHtml = `<button class="page-btn" ${!paged.hasPrev?'disabled':''} onclick="goPage(${currentPage-1})">‹</button>`;
+  for (let p = 1; p <= paged.pages; p++) {
+    pgHtml += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  pgHtml += `<button class="page-btn" ${!paged.hasNext?'disabled':''} onclick="goPage(${currentPage+1})">›</button>`;
+  pgEl.innerHTML = pgHtml;
+}
+
+function goPage(p) { currentPage = p; renderTable(); }
+
+// ---- CREATE ----
+function selectValue(val) {
+  document.querySelectorAll('.value-chip').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  const customInput = document.getElementById('custom-value');
+  if (val === 'custom') {
+    customInput.style.display = 'block';
+    customInput.focus();
+    selectedValue = null;
+  } else {
+    customInput.style.display = 'none';
+    selectedValue = val;
+  }
+}
+
+function goStep(step) {
+  const errEl = document.getElementById('step1-error');
+  errEl.style.display = 'none';
+
+  if (step === 2) {
+    // Validate
+    const customInput = document.getElementById('custom-value');
+    const isCustom    = document.querySelector('.value-chip[data-val="custom"]')?.classList.contains('selected');
+    if (isCustom) selectedValue = parseFloat(customInput.value);
+
+    if (!selectedValue || selectedValue <= 0) {
+      errEl.textContent = 'กรุณาเลือกหรือระบุมูลค่า Voucher';
+      errEl.style.display = 'block'; return;
+    }
+    const qty = parseInt(document.getElementById('quantity').value);
+    if (!qty || qty <= 0) {
+      errEl.textContent = 'กรุณาระบุจำนวน Voucher';
+      errEl.style.display = 'block'; return;
+    }
+
+    const dur = parseInt(document.getElementById('duration-days').value) || 0;
+    document.getElementById('confirm-value').textContent  = fmtMoney(selectedValue) + ' บาท';
+    document.getElementById('confirm-qty').textContent    = qty + ' ใบ';
+    document.getElementById('confirm-total').textContent  = fmtMoney(selectedValue * qty) + ' บาท';
+    document.getElementById('confirm-start').textContent  = document.getElementById('start-date').value  || 'ไม่กำหนด';
+    document.getElementById('confirm-expire').textContent = document.getElementById('expire-date').value || 'ไม่กำหนด';
+    document.getElementById('confirm-dur').textContent    = dur > 0 ? dur + ' วัน' : 'ไม่กำหนด';
+
+    document.getElementById('step1-body').style.display = 'none';
+    document.getElementById('step2-body').style.display = 'block';
+    document.getElementById('step1-ind').classList.remove('active');
+    document.getElementById('step1-ind').classList.add('done');
+    document.getElementById('step2-ind').classList.add('active');
+    document.getElementById('btn-next').style.display   = 'none';
+    document.getElementById('btn-submit').style.display = 'inline-flex';
+    document.getElementById('btn-back').style.display   = 'inline-flex';
+  } else {
+    document.getElementById('step1-body').style.display = 'block';
+    document.getElementById('step2-body').style.display = 'none';
+    document.getElementById('step1-ind').classList.add('active');
+    document.getElementById('step1-ind').classList.remove('done');
+    document.getElementById('step2-ind').classList.remove('active');
+    document.getElementById('btn-next').style.display   = 'inline-flex';
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-back').style.display   = 'none';
+  }
+}
+
+async function submitCreate() {
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
+  try {
+    await API.createBatch({
+      value_thb:     selectedValue,
+      quantity:      parseInt(document.getElementById('quantity').value),
+      start_date:    document.getElementById('start-date').value  || null,
+      expire_date:   document.getElementById('expire-date').value || null,
+      duration_days: parseInt(document.getElementById('duration-days').value) || 0,
+      notes:         document.getElementById('notes').value
+    });
+    closeModal('modal-create');
+    showToast('สร้างคำขอ Voucher สำเร็จ! กรุณาแนบใบเสร็จ', 'success');
+    await loadBatches();
+    resetCreateForm();
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = '✓ ยืนยันคำขอ';
+  }
+}
+
+function resetCreateForm() {
+  selectedValue = null;
+  document.querySelectorAll('.value-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('custom-value').style.display = 'none';
+  document.getElementById('quantity').value      = '';
+  document.getElementById('start-date').value    = '';
+  document.getElementById('expire-date').value   = '';
+  document.getElementById('duration-days').value = '0';
+  document.getElementById('notes').value         = '';
+  goStep(1);
+}
+
+// ---- RECEIPT ----
+function openReceiptModal(batchId) {
+  currentBatchId = batchId;
+  selectedFile   = null;
+  document.getElementById('receipt-preview').style.display = 'none';
+  document.getElementById('btn-attach').disabled = true;
+  openModal('modal-receipt');
+}
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('file-drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFileSelect(e) { processFile(e.target.files[0]); }
+
+function processFile(file) {
+  const errEl = document.getElementById('receipt-error');
+  errEl.style.display = 'none';
+  if (file.size > 10 * 1024 * 1024) {
+    errEl.textContent = 'ไฟล์ใหญ่เกิน 10MB';
+    errEl.style.display = 'block'; return;
+  }
+  selectedFile = file;
+  const preview = document.getElementById('receipt-preview');
+  const sizeMB  = (file.size / 1024 / 1024).toFixed(2);
+  preview.innerHTML = `<div class="receipt-preview">
+    <span class="receipt-icon">${file.type.includes('pdf') ? '📄' : '🖼'}</span>
+    <div><div class="receipt-name">${esc(file.name)}</div><div class="receipt-size">${sizeMB} MB</div></div>
+  </div>`;
+  preview.style.display = 'block';
+  document.getElementById('btn-attach').disabled = false;
+}
+
+async function submitReceipt() {
+  if (!selectedFile || !currentBatchId) return;
+  const btn = document.getElementById('btn-attach');
+  btn.disabled = true; btn.textContent = 'กำลังอัพโหลด...';
+  try {
+    const result = await API.uploadReceipt(selectedFile, currentBatchId);
+    await API.attachReceipt({ batch_id: currentBatchId, receipt_url: result.url, receipt_filename: result.filename });
+    closeModal('modal-receipt');
+    showToast('ส่งคำขออนุมัติสำเร็จ! รอ Admin ตรวจสอบ', 'success');
+    await loadBatches();
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+    btn.disabled = false; btn.textContent = '📤 ส่งคำขออนุมัติ';
+  }
+}
+
+// ---- DETAIL ----
+async function openDetail(batchId) {
+  openModal('modal-detail');
+  document.getElementById('detail-body').innerHTML = '<div style="text-align:center;padding:40px"><div class="spinner" style="margin:auto"></div></div>';
+  try {
+    const b = await API.getBatchDetail(batchId);
+    let codesHtml = '';
+    if (b.status === 'approved') {
+      const codes = await API.getBatchCodes(batchId);
+      codesHtml = `
+        <div class="divider"></div>
+        <div style="margin-bottom:8px;font-weight:700">รหัส Voucher (${codes.length} รายการ)</div>
+        <div style="max-height:300px;overflow-y:auto">
+          <table><thead><tr><th>#</th><th>Code</th><th>มูลค่า</th><th>วันหมดอายุ</th><th>Duration</th></tr></thead>
+          <tbody>${codes.map((c,i)=>`<tr>
+            <td>${i+1}</td>
+            <td style="font-family:monospace;font-size:13px;font-weight:700;color:#B000D4">${esc(c.code)}</td>
+            <td>${fmtMoney(c.value_thb)} ฿</td>
+            <td>${c.expire_date ? fmtDate(c.expire_date) : '-'}</td>
+            <td>${c.duration_days || 0}</td>
+          </tr>`).join('')}</tbody></table>
+        </div>`;
+    }
+
+    document.getElementById('detail-body').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div><span style="font-size:12px;color:#6B6B8A">สถานะ</span><br>${statusBadge(b.status)}</div>
+        <div><span style="font-size:12px;color:#6B6B8A">วันที่สร้าง</span><br><strong>${fmtDateTime(b.created_at)}</strong></div>
+        <div><span style="font-size:12px;color:#6B6B8A">มูลค่า/ใบ</span><br><strong>${fmtMoney(b.value_thb)} บาท</strong></div>
+        <div><span style="font-size:12px;color:#6B6B8A">จำนวน</span><br><strong>${b.quantity} ใบ</strong></div>
+        <div><span style="font-size:12px;color:#6B6B8A">มูลค่ารวม</span><br><strong style="color:#B000D4">${fmtMoney(parseFloat(b.value_thb)*b.quantity)} บาท</strong></div>
+        <div><span style="font-size:12px;color:#6B6B8A">Lot</span><br><span class="badge badge-purple">Lot ${String(b.lot_number).padStart(2,'0')}</span></div>
+        <div><span style="font-size:12px;color:#6B6B8A">วันเริ่ม</span><br>${b.start_date  ? fmtDate(b.start_date)  : 'ไม่กำหนด'}</div>
+        <div><span style="font-size:12px;color:#6B6B8A">วันหมดอายุ</span><br>${b.expire_date ? fmtDate(b.expire_date) : 'ไม่กำหนด'}</div>
+      </div>
+      ${b.notes      ? `<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ:</strong> ${esc(b.notes)}</div>` : ''}
+      ${b.admin_notes? `<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>` : ''}
+      ${b.receipt_url? `<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จ</a></div>` : ''}
+      ${codesHtml}`;
+
+    const footer = document.getElementById('detail-footer');
+    footer.innerHTML = '';
+    if (b.status === 'approved') {
+      footer.innerHTML = `<button class="btn btn-success" onclick="API.downloadCsv('${b.id}')">⬇ Export CSV</button>`;
+    }
+    if (b.status === 'pending_receipt' || b.status === 'rejected') {
+      footer.innerHTML += `<button class="btn btn-primary" onclick="closeModal('modal-detail');openReceiptModal('${b.id}')">📎 แนบใบเสร็จ</button>`;
+    }
+  } catch(e) {
+    document.getElementById('detail-body').innerHTML = `<div style="color:#DC2626;padding:20px">${e.message}</div>`;
+  }
+}
+
+// ---- CANCEL ----
+function askCancel(id) { currentBatchId = id; openModal('modal-cancel'); }
+
+async function confirmCancel() {
+  try {
+    await API.cancelBatch(currentBatchId);
+    closeModal('modal-cancel');
+    showToast('ยกเลิกคำขอเรียบร้อยแล้ว', 'success');
+    await loadBatches();
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# ไฟล์ที่ไม่ต้องขึ้น GitHub
+
+# Secrets / Config (ห้ามขึ้น!)
+js/config.local.js
+.env
+*.env
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Log files
+*.log
+
+# Node (ถ้ามีใช้ในอนาคต)
+node_modules/

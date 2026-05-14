@@ -1,0 +1,114 @@
+// ============================================================
+// utils.js — UI helpers
+// ============================================================
+
+// Format date YYYY-MM-DD → DD/MM/YYYY
+function fmtDate(d) {
+  if (!d) return '-';
+  const parts = d.split('-');
+  if (parts.length !== 3) return d;
+  return parts[2] + '/' + parts[1] + '/' + (parseInt(parts[0]) + 543); // Buddhist era
+}
+
+// Format currency
+function fmtMoney(n) {
+  return parseFloat(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 0 });
+}
+
+// Format datetime
+function fmtDateTime(dt) {
+  if (!dt) return '-';
+  const d = new Date(dt);
+  return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })
+       + ' ' + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Status badge HTML
+function statusBadge(status) {
+  const label = CONFIG.STATUS_LABELS[status] || status;
+  const cls   = CONFIG.STATUS_COLORS[status]  || 'badge-secondary';
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// Toast notification
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container') || createToastContainer();
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ'}</div>
+    <div class="toast-msg">${message}</div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.add('show'); }, 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+function createToastContainer() {
+  const el = document.createElement('div');
+  el.id = 'toast-container';
+  el.className = 'toast-container';
+  document.body.appendChild(el);
+  return el;
+}
+
+// Modal helper
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Loading overlay
+function setLoading(show) {
+  const el = document.getElementById('loading-overlay');
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+// Render user nav info
+function renderNavUser() {
+  const user = Auth.getUser();
+  if (!user) return;
+  const el = document.getElementById('nav-user-name');
+  if (el) el.textContent = user.firstName + ' ' + user.lastName;
+  const roleEl = document.getElementById('nav-user-role');
+  if (roleEl) roleEl.textContent = user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน';
+}
+
+// Highlight active nav link
+function setActiveNav(page) {
+  document.querySelectorAll('.nav-link').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === page);
+  });
+}
+
+// Pagination helper
+function paginate(items, page, perPage) {
+  const total = items.length;
+  const pages = Math.ceil(total / perPage);
+  const start = (page - 1) * perPage;
+  return {
+    items:      items.slice(start, start + perPage),
+    total,
+    pages,
+    page,
+    perPage,
+    hasNext:    page < pages,
+    hasPrev:    page > 1
+  };
+}
+
+// Simple debounce
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// Escape HTML
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}

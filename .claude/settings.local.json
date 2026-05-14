@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\supabase\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\gas\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\js\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\css\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\user\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\admin\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"D:\\\\9.make_voucher_volta\\\\web app\\\\assets\")"
+    ]
+  }
+}

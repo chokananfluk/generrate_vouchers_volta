@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Voucher — Admin: จัดการผู้ใช้</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+<div id="loading-overlay"><div class="spinner"></div><span style="color:#7E00A8;font-weight:600">กำลังโหลด...</span></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo.png" alt="Volta Voucher" onerror="this.outerHTML='<div style=\'font-size:20px;font-weight:900;color:#B000D4\'>⚡ Volta Voucher</div>'">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Admin</div>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="vouchers.html"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="users.html"     class="nav-link active"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="help.html"      class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar" style="background:linear-gradient(135deg,#D100FF,#7A2CFF)">A</div>
+        <div class="user-info"><div class="name" id="nav-user-name">Admin</div><div class="role" style="color:#B000D4">ผู้ดูแลระบบ</div></div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">จัดการผู้ใช้</span>
+      </div>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ เพิ่มผู้ใช้ใหม่</button>
+    </header>
+
+    <div class="page-content">
+      <div class="filter-bar">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="form-control" id="search-input" placeholder="ค้นหาชื่อ / อีเมล..." oninput="filterUsers()" style="padding-left:36px;width:240px">
+        </div>
+        <select class="form-control" id="role-filter" onchange="filterUsers()" style="width:140px">
+          <option value="">ทุกประเภท</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select class="form-control" id="active-filter" onchange="filterUsers()" style="width:140px">
+          <option value="">ทุกสถานะ</option>
+          <option value="true">ใช้งานได้</option>
+          <option value="false">ปิดใช้งาน</option>
+        </select>
+        <div style="margin-left:auto;font-size:13px;color:#6B6B8A">รวม <strong id="total-count">—</strong> คน</div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อ-นามสกุล</th>
+                <th>อีเมล</th>
+                <th>เบอร์ติดต่อ</th>
+                <th>แผนก / กอง</th>
+                <th>สายงาน</th>
+                <th>ประเภท</th>
+                <th>สถานะ</th>
+                <th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:#9CA3AF">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="pagination" class="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: CREATE / EDIT USER ============================================================ -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-user-title">เพิ่มผู้ใช้ใหม่</span>
+      <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-user-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ชื่อ <span class="required">*</span></label>
+          <input type="text" id="u-fname" class="form-control" placeholder="ชื่อ">
+        </div>
+        <div class="form-group">
+          <label class="form-label">นามสกุล <span class="required">*</span></label>
+          <input type="text" id="u-lname" class="form-control" placeholder="นามสกุล">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">อีเมล (ใช้ login) <span class="required">*</span></label>
+        <input type="email" id="u-email" class="form-control" placeholder="example@company.com">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" id="pw-label">รหัสผ่าน <span class="required">*</span></label>
+          <input type="password" id="u-password" class="form-control" placeholder="อย่างน้อย 8 ตัวอักษร">
+        </div>
+        <div class="form-group">
+          <label class="form-label">เบอร์ติดต่อ</label>
+          <input type="tel" id="u-phone" class="form-control" placeholder="0xx-xxx-xxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">แผนก</label>
+          <input type="text" id="u-dept" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">กอง</label>
+          <input type="text" id="u-div" class="form-control">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">ฝ่าย</label>
+          <input type="text" id="u-sec" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">สายงาน/เขตพื้นที่</label>
+          <input type="text" id="u-area" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ประเภทผู้ใช้ <span class="required">*</span></label>
+        <select id="u-role" class="form-control">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div id="user-error" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-user')">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-save-user" onclick="saveUser()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: RESET PASSWORD ============================================================ -->
+<div class="modal-overlay" id="modal-reset-pw">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title">🔒 รีเซ็ตรหัสผ่าน</span>
+      <button class="modal-close" onclick="closeModal('modal-reset-pw')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A;margin-bottom:16px">ตั้งรหัสผ่านใหม่สำหรับ <strong id="reset-user-name"></strong></p>
+      <div class="form-group">
+        <label class="form-label">รหัสผ่านใหม่ <span class="required">*</span></label>
+        <input type="password" id="new-reset-pw" class="form-control" placeholder="อย่างน้อย 8 ตัวอักษร">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-reset-pw')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="confirmResetPw()">🔒 รีเซ็ต</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL: DEACTIVATE CONFIRM ============================================================ -->
+<div class="modal-overlay" id="modal-deactivate">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">ยืนยันการปิดใช้งาน</span>
+      <button class="modal-close" onclick="closeModal('modal-deactivate')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#6B6B8A">ผู้ใช้ <strong id="deactivate-name"></strong> จะไม่สามารถเข้าสู่ระบบได้จนกว่าจะเปิดใช้งานอีกครั้ง</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-deactivate')">ยกเลิก</button>
+      <button class="btn btn-danger"  onclick="confirmDeactivate()">ปิดใช้งาน</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+let allUsers     = [];
+let currentPage  = 1;
+const PER_PAGE   = 15;
+let editingUserId   = null;
+let deactivateUserId = null;
+let resetPwUserId    = null;
+let isEditMode = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+  await loadUsers();
+});
+
+async function loadUsers() {
+  setLoading(true);
+  try {
+    allUsers = (await API.listUsers()) || [];
+    filterUsers();
+  } catch(e) { showToast('โหลดข้อมูลไม่สำเร็จ', 'error'); }
+  finally { setLoading(false); }
+}
+
+function filterUsers() {
+  currentPage = 1;
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const role   = document.getElementById('role-filter').value;
+  const active = document.getElementById('active-filter').value;
+
+  const filtered = allUsers.filter(u => {
+    const name = (u.first_name + ' ' + u.last_name).toLowerCase();
+    const matchSearch = !search || name.includes(search) || u.email.toLowerCase().includes(search);
+    const matchRole   = !role   || u.role       === role;
+    const matchActive = active === '' || String(u.is_active) === active;
+    return matchSearch && matchRole && matchActive;
+  });
+
+  document.getElementById('total-count').textContent = filtered.length;
+  renderTable(filtered);
+}
+
+function renderTable(filtered) {
+  const paged = paginate(filtered, currentPage, PER_PAGE);
+  const tbody = document.getElementById('users-tbody');
+
+  if (paged.items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px;color:#9CA3AF"><div style="font-size:40px;margin-bottom:8px">👥</div>ไม่พบผู้ใช้</td></tr>`;
+  } else {
+    tbody.innerHTML = paged.items.map((u, i) => `
+      <tr style="${!u.is_active ? 'opacity:.55' : ''}">
+        <td style="font-size:12px;color:#9CA3AF">${(currentPage-1)*PER_PAGE+i+1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,${u.role==='admin'?'#D100FF,#7A2CFF':'#B000D4,#4D4DFF'});display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;flex-shrink:0">${u.first_name[0]}</div>
+            <div>
+              <div style="font-weight:600">${esc(u.first_name)} ${esc(u.last_name)}</div>
+              <div style="font-size:11px;color:#9CA3AF">เข้าร่วม ${fmtDate(u.created_at?.split('T')[0])}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:13px">${esc(u.email)}</td>
+        <td style="font-size:13px;color:#6B6B8A">${u.phone || '-'}</td>
+        <td style="font-size:13px;color:#6B6B8A">${esc(u.department||'-')} / ${esc(u.division||'-')}</td>
+        <td style="font-size:13px;color:#6B6B8A">${esc(u.area||'-')}</td>
+        <td>${u.role==='admin'
+          ? '<span class="badge badge-purple">Admin</span>'
+          : '<span class="badge badge-secondary">User</span>'}</td>
+        <td>${u.is_active
+          ? '<span class="badge badge-success">ใช้งาน</span>'
+          : '<span class="badge badge-danger">ปิดใช้งาน</span>'}</td>
+        <td>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="btn-icon" title="แก้ไข" onclick="openEditModal('${u.id}')">✏️</button>
+            <button class="btn-icon" title="รีเซ็ต Password" onclick="openResetPw('${u.id}','${esc(u.first_name)} ${esc(u.last_name)}')">🔒</button>
+            ${u.is_active
+              ? `<button class="btn-icon" title="ปิดใช้งาน" onclick="askDeactivate('${u.id}','${esc(u.first_name)} ${esc(u.last_name)}')" style="color:#EF4444">🚫</button>`
+              : `<button class="btn-icon" title="เปิดใช้งาน" onclick="activateUser('${u.id}')" style="color:#22C55E">✅</button>`}
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  const pgEl = document.getElementById('pagination');
+  if (paged.pages <= 1) { pgEl.innerHTML = ''; return; }
+  let pgHtml = `<button class="page-btn" ${!paged.hasPrev?'disabled':''} onclick="goPage(${currentPage-1})">‹</button>`;
+  for (let p = 1; p <= paged.pages; p++) {
+    pgHtml += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  pgHtml += `<button class="page-btn" ${!paged.hasNext?'disabled':''} onclick="goPage(${currentPage+1})">›</button>`;
+  pgEl.innerHTML = pgHtml;
+}
+
+function goPage(p) { currentPage = p; filterUsers(); }
+
+function openCreateModal() {
+  isEditMode = false;
+  editingUserId = null;
+  document.getElementById('modal-user-title').textContent = 'เพิ่มผู้ใช้ใหม่';
+  document.getElementById('pw-label').innerHTML = 'รหัสผ่าน <span class="required">*</span>';
+  clearUserForm();
+  document.getElementById('u-email').disabled = false;
+  document.getElementById('user-error').style.display = 'none';
+  openModal('modal-user');
+}
+
+function openEditModal(userId) {
+  isEditMode    = true;
+  editingUserId = userId;
+  const u = allUsers.find(x => x.id === userId);
+  if (!u) return;
+
+  document.getElementById('modal-user-title').textContent = 'แก้ไขข้อมูลผู้ใช้';
+  document.getElementById('pw-label').innerHTML = 'รหัสผ่านใหม่ <small style="color:#9CA3AF;font-weight:400">(เว้นว่างถ้าไม่เปลี่ยน)</small>';
+  document.getElementById('u-fname').value    = u.first_name   || '';
+  document.getElementById('u-lname').value    = u.last_name    || '';
+  document.getElementById('u-email').value    = u.email        || '';
+  document.getElementById('u-email').disabled = true;
+  document.getElementById('u-password').value = '';
+  document.getElementById('u-phone').value    = u.phone        || '';
+  document.getElementById('u-dept').value     = u.department   || '';
+  document.getElementById('u-div').value      = u.division     || '';
+  document.getElementById('u-sec').value      = u.section      || '';
+  document.getElementById('u-area').value     = u.area         || '';
+  document.getElementById('u-role').value     = u.role         || 'user';
+  document.getElementById('user-error').style.display = 'none';
+  openModal('modal-user');
+}
+
+function clearUserForm() {
+  ['u-fname','u-lname','u-email','u-password','u-phone','u-dept','u-div','u-sec','u-area'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('u-role').value = 'user';
+}
+
+async function saveUser() {
+  const errEl = document.getElementById('user-error');
+  errEl.style.display = 'none';
+
+  const fname = document.getElementById('u-fname').value.trim();
+  const lname = document.getElementById('u-lname').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const pw    = document.getElementById('u-password').value;
+  const role  = document.getElementById('u-role').value;
+
+  if (!fname || !lname) { errEl.textContent = 'กรุณากรอกชื่อและนามสกุล'; errEl.style.display='block'; return; }
+  if (!isEditMode && !email) { errEl.textContent = 'กรุณากรอกอีเมล'; errEl.style.display='block'; return; }
+  if (!isEditMode && !pw)    { errEl.textContent = 'กรุณากรอกรหัสผ่าน'; errEl.style.display='block'; return; }
+  if (pw && pw.length < 8)   { errEl.textContent = 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'; errEl.style.display='block'; return; }
+
+  const btn = document.getElementById('btn-save-user');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  try {
+    const params = {
+      first_name: fname, last_name: lname,
+      phone:       document.getElementById('u-phone').value.trim() || null,
+      department:  document.getElementById('u-dept').value.trim()  || null,
+      division:    document.getElementById('u-div').value.trim()   || null,
+      section:     document.getElementById('u-sec').value.trim()   || null,
+      area:        document.getElementById('u-area').value.trim()  || null,
+      role
+    };
+
+    if (!isEditMode) {
+      await API.createUser({ ...params, email, password: pw });
+      showToast('เพิ่มผู้ใช้สำเร็จ', 'success');
+    } else {
+      if (pw) await API.adminResetPassword(editingUserId, pw);
+      await API.updateUser(editingUserId, params);
+      showToast('อัพเดตข้อมูลสำเร็จ', 'success');
+    }
+    closeModal('modal-user');
+    await loadUsers();
+  } catch(e) {
+    errEl.textContent = e.message.includes('already exists') ? 'อีเมลนี้มีผู้ใช้งานแล้ว' : e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 บันทึก';
+  }
+}
+
+function openResetPw(userId, name) {
+  resetPwUserId = userId;
+  document.getElementById('reset-user-name').textContent = name;
+  document.getElementById('new-reset-pw').value = '';
+  openModal('modal-reset-pw');
+}
+
+async function confirmResetPw() {
+  const pw = document.getElementById('new-reset-pw').value;
+  if (!pw || pw.length < 8) { showToast('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร', 'error'); return; }
+  try {
+    await API.adminResetPassword(resetPwUserId, pw);
+    closeModal('modal-reset-pw');
+    showToast('รีเซ็ตรหัสผ่านสำเร็จ', 'success');
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+}
+
+function askDeactivate(userId, name) {
+  deactivateUserId = userId;
+  document.getElementById('deactivate-name').textContent = name;
+  openModal('modal-deactivate');
+}
+
+async function confirmDeactivate() {
+  try {
+    await API.deactivateUser(deactivateUserId);
+    closeModal('modal-deactivate');
+    showToast('ปิดใช้งานผู้ใช้แล้ว', 'success');
+    await loadUsers();
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+}
+
+async function activateUser(userId) {
+  try {
+    await API.activateUser(userId);
+    showToast('เปิดใช้งานผู้ใช้แล้ว', 'success');
+    await loadUsers();
+  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+}
+</script>
+</body>
+</html>

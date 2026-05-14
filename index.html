@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Voucher — เข้าสู่ระบบ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/custom.css">
+  <style>
+    .pw-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#9CA3AF; background:none; border:none; font-size:18px; }
+    .input-wrap { position:relative; }
+    .logo-img   { width:200px; }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+  <!-- Left brand panel -->
+  <div class="login-left">
+    <div class="login-brand">
+      <img src="assets/logo.png" alt="Volta Voucher" class="logo-img"
+           onerror="this.style.display='none';document.getElementById('logo-text').style.display='block'">
+      <div id="logo-text" style="display:none;color:white;font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:24px">
+        ⚡ Volta Voucher
+      </div>
+      <p>ระบบสร้างและจัดการ Voucher<br>บัตรเติมเงินสำหรับองค์กร</p>
+      <div style="margin-top:40px;display:flex;flex-direction:column;gap:14px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto">
+        <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.9)">
+          <span style="font-size:22px">🎫</span>
+          <span style="font-size:14px">สร้าง Voucher ได้รวดเร็วและปลอดภัย</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.9)">
+          <span style="font-size:22px">✅</span>
+          <span style="font-size:14px">ระบบอนุมัติแบบ 2 ขั้นตอน</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.9)">
+          <span style="font-size:22px">📊</span>
+          <span style="font-size:14px">Export ข้อมูลเป็น CSV ได้ทันที</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right login form -->
+  <div class="login-right">
+    <div class="login-box">
+      <h2>เข้าสู่ระบบ</h2>
+      <p>กรุณากรอกอีเมลและรหัสผ่านของคุณ</p>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">อีเมล <span class="required">*</span></label>
+          <input id="email" type="email" class="form-control" placeholder="example@company.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รหัสผ่าน <span class="required">*</span></label>
+          <div class="input-wrap">
+            <input id="password" type="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" onclick="togglePassword()" id="pw-eye">👁</button>
+          </div>
+        </div>
+
+        <div id="error-msg" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
+          <span id="btn-text">เข้าสู่ระบบ</span>
+          <span id="btn-spinner" style="display:none">กำลังเข้าสู่ระบบ...</span>
+        </button>
+      </form>
+
+      <p style="margin-top:24px;font-size:12px;color:#9CA3AF;text-align:center">
+        © 2025 Volta Voucher. All rights reserved.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+  // If already logged in, redirect
+  document.addEventListener('DOMContentLoaded', () => {
+    if (Auth.isLoggedIn()) {
+      const user = Auth.getUser();
+      window.location.href = user.role === 'admin' ? 'admin/dashboard.html' : 'user/dashboard.html';
+    }
+  });
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl    = document.getElementById('error-msg');
+    const btnText  = document.getElementById('btn-text');
+    const btnSpin  = document.getElementById('btn-spinner');
+    const btn      = document.getElementById('submit-btn');
+
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpin.style.display = 'inline';
+
+    try {
+      const session = await API.login(email, password);
+      Auth.saveSession(session);
+      const user = session.user;
+      window.location.href = user.role === 'admin' ? 'admin/dashboard.html' : 'user/dashboard.html';
+    } catch(err) {
+      errEl.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      btnSpin.style.display = 'none';
+    }
+  }
+
+  function togglePassword() {
+    const inp = document.getElementById('password');
+    const eye = document.getElementById('pw-eye');
+    if (inp.type === 'password') { inp.type = 'text';     eye.textContent = '🙈'; }
+    else                         { inp.type = 'password'; eye.textContent = '👁';  }
+  }
+</script>
+</body>
+</html>

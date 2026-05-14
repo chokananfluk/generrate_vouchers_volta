@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volta Voucher — Admin: วิธีใช้งาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="../assets/logo.png" alt="Volta Voucher" onerror="this.outerHTML='<div style=\'font-size:20px;font-weight:900;color:#B000D4\'>⚡ Volta Voucher</div>'">
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Admin</div>
+      <a href="dashboard.html" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="vouchers.html"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="users.html"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="help.html"      class="nav-link active"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar" style="background:linear-gradient(135deg,#D100FF,#7A2CFF)">A</div>
+        <div class="user-info"><div class="name" id="nav-user-name">Admin</div><div class="role" style="color:#B000D4">ผู้ดูแลระบบ</div></div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">วิธีใช้งาน (Admin)</span>
+      </div>
+    </header>
+
+    <div class="page-content" style="max-width:860px">
+      <div style="margin-bottom:28px">
+        <h1 class="section-title">คู่มือผู้ดูแลระบบ <span class="gradient-text">Volta Voucher</span></h1>
+        <p class="section-sub">การจัดการคำขอ, ผู้ใช้งาน และการตั้งค่าระบบ</p>
+      </div>
+
+      <!-- Admin workflow -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title" style="margin-bottom:20px">กระบวนการอนุมัติ Voucher</div>
+        <div style="display:flex;gap:0;overflow-x:auto;padding-bottom:8px">
+          <div style="text-align:center;min-width:130px;padding:0 8px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#FEF9C3;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">📧</div>
+            <div style="font-size:13px;font-weight:700">รับอีเมลแจ้งเตือน</div>
+            <div style="font-size:12px;color:#6B6B8A;margin-top:2px">ระบบส่งให้อัตโนมัติ</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#BDB8CC;font-size:20px;padding:0 4px;padding-bottom:28px">→</div>
+          <div style="text-align:center;min-width:130px;padding:0 8px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">🔍</div>
+            <div style="font-size:13px;font-weight:700">ตรวจสอบคำขอ</div>
+            <div style="font-size:12px;color:#6B6B8A;margin-top:2px">ดูข้อมูลและใบเสร็จ</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#BDB8CC;font-size:20px;padding:0 4px;padding-bottom:28px">→</div>
+          <div style="text-align:center;min-width:130px;padding:0 8px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">✅</div>
+            <div style="font-size:13px;font-weight:700">อนุมัติ / ตีกลับ</div>
+            <div style="font-size:12px;color:#6B6B8A;margin-top:2px">กดปุ่มดำเนินการ</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#BDB8CC;font-size:20px;padding:0 4px;padding-bottom:28px">→</div>
+          <div style="text-align:center;min-width:130px;padding:0 8px">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,rgba(176,0,212,.15),rgba(122,44,255,.1));display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">🎫</div>
+            <div style="font-size:13px;font-weight:700">สร้าง Voucher</div>
+            <div style="font-size:12px;color:#6B6B8A;margin-top:2px">อัตโนมัติหลังอนุมัติ</div>
+          </div>
+          <div style="display:flex;align-items:center;color:#BDB8CC;font-size:20px;padding:0 4px;padding-bottom:28px">→</div>
+          <div style="text-align:center;min-width:130px;padding:0 8px">
+            <div style="width:56px;height:56px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">📩</div>
+            <div style="font-size:13px;font-weight:700">แจ้งผู้ใช้</div>
+            <div style="font-size:12px;color:#6B6B8A;margin-top:2px">อีเมลส่งอัตโนมัติ</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Manage vouchers -->
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#B000D4,#7A2CFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">1</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px">จัดการ Voucher</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7;margin-bottom:12px">ไปที่เมนู <strong>จัดการ Voucher</strong> เพื่อดูรายการคำขอทั้งหมด กรองด้วยสถานะหรือค้นหาด้วยชื่อผู้ขอ</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:#DCFCE7;padding:12px;border-radius:8px">
+                  <div style="font-size:13px;font-weight:700;color:#15803D;margin-bottom:4px">✅ การอนุมัติ</div>
+                  <div style="font-size:13px;color:#166534">กดปุ่ม "อนุมัติ" — ระบบสร้างรหัส Voucher ทันที และส่งอีเมลแจ้งผู้ใช้</div>
+                </div>
+                <div style="background:#FEE2E2;padding:12px;border-radius:8px">
+                  <div style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:4px">✗ การตีกลับ</div>
+                  <div style="font-size:13px;color:#991B1B">กดปุ่ม "ตีกลับ" — ต้องระบุเหตุผล ระบบส่งอีเมลแจ้งให้แก้ไขและส่งใหม่</div>
+                </div>
+              </div>
+              <div style="background:#FEF9C3;padding:12px;border-radius:8px;margin-top:10px;font-size:13px">
+                <strong>⚠️ หมายเหตุ:</strong> ตรวจสอบใบเสร็จก่อนกดอนุมัติเสมอ หากคลิก "ดูใบเสร็จแนบ" ควรตรวจสอบให้แน่ใจว่าถูกต้อง
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manage users -->
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#008CFF,#4D4DFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">2</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px">จัดการผู้ใช้งาน</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7;margin-bottom:12px">ไปที่เมนู <strong>จัดการผู้ใช้</strong> เพื่อเพิ่ม แก้ไข หรือปิดการใช้งานบัญชีผู้ใช้</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                <div style="background:#F4F0FF;padding:10px;border-radius:8px;text-align:center">
+                  <div style="font-size:20px;margin-bottom:4px">✏️</div>
+                  <div style="font-size:12px;font-weight:700;color:#7E00A8">แก้ไขข้อมูล</div>
+                  <div style="font-size:11px;color:#6B6B8A">ชื่อ แผนก เบอร์</div>
+                </div>
+                <div style="background:#F4F0FF;padding:10px;border-radius:8px;text-align:center">
+                  <div style="font-size:20px;margin-bottom:4px">🔒</div>
+                  <div style="font-size:12px;font-weight:700;color:#7E00A8">รีเซ็ตรหัสผ่าน</div>
+                  <div style="font-size:11px;color:#6B6B8A">ตั้งรหัสใหม่แทน</div>
+                </div>
+                <div style="background:#F4F0FF;padding:10px;border-radius:8px;text-align:center">
+                  <div style="font-size:20px;margin-bottom:4px">🚫</div>
+                  <div style="font-size:12px;font-weight:700;color:#7E00A8">ปิดใช้งาน</div>
+                  <div style="font-size:11px;color:#6B6B8A">ระงับการเข้าสู่ระบบ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Setup GAS -->
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">3</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px">การตั้งค่าระบบ (Setup)</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7;margin-bottom:12px">ก่อนใช้งานครั้งแรก ต้องตั้งค่า Google Apps Script Properties และสร้าง Admin user เริ่มต้น</p>
+              <div style="background:#1E1E2E;border-radius:10px;padding:16px;font-family:monospace;font-size:13px;color:#E2E8F0;line-height:2">
+                <div style="color:#94A3B8;margin-bottom:8px">// Script Properties ที่ต้องตั้ง</div>
+                <div><span style="color:#7DD3FC">SUPABASE_URL</span>     = <span style="color:#86EFAC">"https://xxx.supabase.co"</span></div>
+                <div><span style="color:#7DD3FC">SUPABASE_SERVICE_KEY</span> = <span style="color:#86EFAC">"eyJ..."</span></div>
+                <div><span style="color:#7DD3FC">ADMIN_EMAIL</span>      = <span style="color:#86EFAC">"admin@yourcompany.com"</span></div>
+                <div><span style="color:#7DD3FC">APP_URL</span>          = <span style="color:#86EFAC">"https://your-app-url.com"</span></div>
+              </div>
+              <div style="margin-top:12px;background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px">
+                <strong>📋 ขั้นตอน:</strong>
+                <ol style="margin-top:8px;padding-left:20px;line-height:1.8;color:#6B6B8A">
+                  <li>สร้าง Supabase project และ run <code>schema.sql</code></li>
+                  <li>สร้าง Storage bucket ชื่อ <code>receipts</code> (Public)</li>
+                  <li>Upload ไฟล์ <code>gas/*.gs</code> ไปยัง Google Apps Script</li>
+                  <li>ตั้ง Script Properties ตามด้านบน</li>
+                  <li>Deploy as Web App (Execute as: Me, Access: Anyone)</li>
+                  <li>รัน function <code>setupAdminUser()</code> เพื่อสร้าง Admin account</li>
+                  <li>แก้ไข <code>js/config.js</code> ให้ใส่ GAS_URL ที่ได้มา</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status reference -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">ตารางอ้างอิงสถานะคำขอ</div>
+          <table>
+            <thead><tr><th>สถานะ</th><th>ความหมาย</th><th>การดำเนินการ</th></tr></thead>
+            <tbody>
+              <tr><td>${statusBadge_('pending_receipt','รอแนบใบเสร็จ','badge-warning')}</td><td>User สร้างคำขอแล้ว ยังไม่แนบใบเสร็จ</td><td>รอ User ดำเนินการ</td></tr>
+              <tr><td>${statusBadge_('pending_approval','รออนุมัติ','badge-info')}</td><td>User แนบใบเสร็จแล้ว รอ Admin ตรวจสอบ</td><td><strong>Admin กด อนุมัติ / ตีกลับ</strong></td></tr>
+              <tr><td>${statusBadge_('approved','อนุมัติแล้ว','badge-success')}</td><td>สร้างรหัส Voucher เรียบร้อย</td><td>Export CSV ได้</td></tr>
+              <tr><td>${statusBadge_('rejected','ตีกลับ','badge-danger')}</td><td>Admin ตีกลับ รอ User แก้ไข</td><td>รอ User ส่งใหม่</td></tr>
+              <tr><td>${statusBadge_('cancelled','ยกเลิก','badge-secondary')}</td><td>User ยกเลิกเอง</td><td>ไม่มีการดำเนินการ</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script>
+function statusBadge_(status, label, cls) {
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.requireAdmin()) return;
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+});
+</script>
+</body>
+</html>
