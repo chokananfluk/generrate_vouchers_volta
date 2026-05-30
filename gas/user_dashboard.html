@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Volta Voucher — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <?!= include('_css'); ?>
+</head>
+<body>
+
+<div id="loading-overlay"><div class="spinner"></div><span style="color:#7E00A8;font-weight:600">กำลังโหลด...</span></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">เมนูหลัก</div>
+      <a href="?page=user-dashboard" class="nav-link active" data-page="dashboard"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="?page=user-vouchers"  class="nav-link" data-page="vouchers"><span class="nav-icon">🎫</span> Voucher ของฉัน</a>
+      <div class="nav-section-title" style="margin-top:8px">บัญชี</div>
+      <a href="?page=user-account" class="nav-link" data-page="account"><span class="nav-icon">👤</span> บัญชีผู้ใช้</a>
+      <a href="?page=help"          class="nav-link" data-page="help"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar">?</div>
+        <div class="user-info">
+          <div class="name" id="nav-user-name">...</div>
+          <div class="role" id="nav-user-role">ผู้ใช้งาน</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <span class="topbar-title">ภาพรวม</span>
+      </div>
+      <div class="topbar-right">
+        <a href="?page=user-vouchers" class="btn btn-primary btn-sm">+ สร้าง Voucher</a>
+        <a href="?page=user-account" id="notif-btn" style="position:relative;cursor:pointer;font-size:22px;text-decoration:none">
+          🔔<span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#B000D4;color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="margin-bottom:28px">
+        <h1 class="section-title">สวัสดี, <span class="gradient-text" id="welcome-name">ผู้ใช้งาน</span> 👋</h1>
+        <p class="section-sub">ภาพรวมการใช้งาน Voucher ของคุณ</p>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:28px">
+        <div class="stat-card"><div class="stat-icon">🎫</div><div class="stat-label">จำนวนครั้งที่สร้าง</div><div class="stat-value purple" id="stat-batches">—</div><div class="stat-sub">คำขอทั้งหมด</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Voucher ที่อนุมัติแล้ว</div><div class="stat-value" id="stat-codes">—</div><div class="stat-sub">ใบ</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">มูลค่ารวม</div><div class="stat-value purple" id="stat-value">—</div><div class="stat-sub">บาท</div></div>
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-label">รออนุมัติ</div><div class="stat-value" id="stat-pending">—</div><div class="stat-sub">รายการ</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">สถานะคำขอ</span></div>
+          <div id="status-breakdown">
+            <div class="empty-state" style="padding:20px">
+              <div class="empty-icon" style="font-size:36px">📋</div>
+              <div class="empty-title" style="font-size:13px">ยังไม่มีข้อมูล</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">คำขอล่าสุด</span>
+            <a href="?page=user-vouchers" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>วันที่</th><th>มูลค่า</th><th>จำนวน</th><th>สถานะ</th><th></th></tr></thead>
+              <tbody id="recent-batches"><tr><td colspan="5" style="text-align:center;padding:32px;color:#9CA3AF">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <span class="card-title">การแจ้งเตือนล่าสุด</span>
+          <button onclick="markAllRead()" style="font-size:13px;color:#B000D4;font-weight:600;background:none;border:none;cursor:pointer">อ่านทั้งหมด</button>
+        </div>
+        <div id="notifications-list">
+          <div class="empty-state" style="padding:24px"><div class="empty-icon" style="font-size:36px">🔔</div><div class="empty-title">ไม่มีการแจ้งเตือน</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?!= include('_js_config'); ?>
+<?!= include('_js_auth');   ?>
+<?!= include('_js_api');    ?>
+<?!= include('_js_utils');  ?>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireLogin()) return;
+  if (Auth.isAdmin()) { goPage('admin-dashboard'); return; }
+  const user = Auth.getUser();
+  document.getElementById('welcome-name').textContent = user.firstName;
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent = user.firstName[0];
+  await Promise.all([loadStats(), loadRecentBatches(), loadNotifications()]);
+});
+
+async function loadStats() {
+  try {
+    const s = await API.getUserStats();
+    document.getElementById('stat-batches').textContent = s.totalBatches;
+    document.getElementById('stat-codes').textContent   = fmtMoney(s.totalCodes);
+    document.getElementById('stat-value').textContent   = fmtMoney(s.totalValue);
+    document.getElementById('stat-pending').textContent =
+      (s.statusCounts.pending_approval || 0) + (s.statusCounts.pending_receipt || 0);
+    const statuses = Object.entries(s.statusCounts || {});
+    if (statuses.length === 0) return;
+    document.getElementById('status-breakdown').innerHTML = statuses.map(([st, cnt]) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #EDE9F6">
+        ${statusBadge(st)}<span style="font-weight:700;font-size:16px">${cnt}</span>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadRecentBatches() {
+  try {
+    const batches = (await API.getUserBatches()) || [];
+    const recent  = batches.slice(0, 5);
+    const tbody   = document.getElementById('recent-batches');
+    if (recent.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:#9CA3AF">
+        ยังไม่มีคำขอ <a href="?page=user-vouchers" style="color:#B000D4;font-weight:600">สร้างใหม่</a></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = recent.map(b => `
+      <tr>
+        <td style="font-size:13px;color:#6B6B8A">${fmtDate((b.created_at||'').split('T')[0])}</td>
+        <td><strong>${fmtMoney(b.value_thb)}</strong> บาท</td>
+        <td>${b.quantity} ใบ</td>
+        <td>${statusBadge(b.status)}</td>
+        <td><a href="?page=user-vouchers#${b.id}" class="btn btn-outline btn-sm">ดู</a></td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadNotifications() {
+  try {
+    const notifs = (await API.getNotifications()) || [];
+    const unread = notifs.filter(n => !n.is_read).length;
+    const badge  = document.getElementById('notif-badge');
+    if (unread > 0) { badge.textContent = unread; badge.style.display = 'flex'; }
+    const el = document.getElementById('notifications-list');
+    if (notifs.length === 0) return;
+    el.innerHTML = notifs.slice(0, 5).map(n => `
+      <div class="notif-item" style="${!n.is_read ? 'background:rgba(176,0,212,.03);border-radius:8px;padding:12px;' : ''}">
+        <div class="notif-icon ${n.type}">${n.type==='success'?'✅':n.type==='warning'?'⚠️':'ℹ️'}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:${n.is_read?'500':'700'};color:#1A1A2E">${esc(n.title)}</div>
+          <div style="font-size:13px;color:#6B6B8A;margin-top:2px">${esc(n.message)}</div>
+          <div style="font-size:11px;color:#BDB8CC;margin-top:4px">${fmtDateTime(n.created_at)}</div>
+        </div>
+        ${!n.is_read ? `<button onclick="markRead('${n.id}',this)" style="font-size:11px;color:#B000D4;background:none;border:none;cursor:pointer;white-space:nowrap">อ่านแล้ว</button>` : ''}
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function markRead(id, btn) {
+  await API.markNotificationRead(id);
+  btn.closest('.notif-item').style.background = '';
+  btn.remove();
+}
+async function markAllRead() {
+  await API.markAllNotificationsRead();
+  document.getElementById('notif-badge').style.display = 'none';
+  await loadNotifications();
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+</script>
+</body>
+</html>

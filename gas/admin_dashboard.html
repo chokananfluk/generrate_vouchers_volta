@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Volta Voucher — Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <?!= include('_css'); ?>
+</head>
+<body>
+<div id="loading-overlay"><div class="spinner"></div><span style="color:#7E00A8;font-weight:600">กำลังโหลด...</span></div>
+
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Admin</div>
+      <a href="?page=admin-dashboard" class="nav-link active"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="?page=admin-vouchers"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="?page=admin-users"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="?page=help"             class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar" style="background:linear-gradient(135deg,#D100FF,#7A2CFF)">A</div>
+        <div class="user-info"><div class="name" id="nav-user-name">Admin</div><div class="role" style="color:#B000D4">ผู้ดูแลระบบ</div></div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">Admin Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span style="background:linear-gradient(135deg,rgba(176,0,212,.1),rgba(122,44,255,.08));color:#B000D4;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700">🛡 ผู้ดูแลระบบ</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="margin-bottom:28px">
+        <h1 class="section-title">ภาพรวมระบบ <span class="gradient-text">Volta Voucher</span></h1>
+        <p class="section-sub">สถิติและข้อมูลทั้งหมดของระบบ</p>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:28px">
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">ผู้ใช้งานทั้งหมด</div><div class="stat-value purple" id="s-users">—</div><div class="stat-sub">User accounts</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-label">คำขอทั้งหมด</div><div class="stat-value" id="s-batches">—</div><div class="stat-sub">คำขอสร้าง Voucher</div></div>
+        <div class="stat-card"><div class="stat-icon">🎫</div><div class="stat-label">Voucher ที่สร้างแล้ว</div><div class="stat-value purple" id="s-codes">—</div><div class="stat-sub">รหัส Voucher ทั้งหมด</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">มูลค่ารวม (อนุมัติ)</div><div class="stat-value" id="s-value">—</div><div class="stat-sub">บาท</div></div>
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-label">รอการอนุมัติ</div><div class="stat-value" id="s-pending" style="color:#D97706">—</div><div class="stat-sub">คำขอ</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;margin-bottom:20px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">สถานะคำขอ</span></div>
+          <div id="status-breakdown"><div style="padding:20px;text-align:center;color:#9CA3AF">กำลังโหลด...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⏳ รอการอนุมัติ</span>
+            <a href="?page=admin-vouchers&status=pending_approval" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ผู้ขอ</th><th>มูลค่า</th><th>จำนวน</th><th>วันที่</th><th></th></tr></thead>
+              <tbody id="pending-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#9CA3AF">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">คำขอล่าสุดทั้งหมด</span>
+          <a href="?page=admin-vouchers" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ผู้ขอ</th><th>แผนก</th><th>มูลค่า/ใบ</th><th>จำนวน</th><th>วันที่</th><th>สถานะ</th><th></th></tr></thead>
+            <tbody id="recent-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#9CA3AF">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?!= include('_js_config'); ?>
+<?!= include('_js_auth');   ?>
+<?!= include('_js_api');    ?>
+<?!= include('_js_utils');  ?>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!Auth.requireAdmin()) return;
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+  setLoading(true);
+  await Promise.all([loadStats(), loadBatches()]);
+  setLoading(false);
+});
+
+async function loadStats() {
+  try {
+    const s = await API.getAdminStats();
+    document.getElementById('s-users').textContent   = s.totalUsers;
+    document.getElementById('s-batches').textContent = s.totalBatches;
+    document.getElementById('s-codes').textContent   = fmtMoney(s.totalCodes);
+    document.getElementById('s-value').textContent   = fmtMoney(s.totalValue);
+    document.getElementById('s-pending').textContent = s.statusCounts.pending_approval || 0;
+    const statusEl = document.getElementById('status-breakdown');
+    const entries  = Object.entries(s.statusCounts || {});
+    if (entries.length === 0) { statusEl.innerHTML = '<div style="text-align:center;color:#9CA3AF;padding:20px">ไม่มีข้อมูล</div>'; return; }
+    statusEl.innerHTML = entries.map(([st,cnt]) => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #EDE9F6">
+        ${statusBadge(st)}<span style="font-weight:700;font-size:16px">${cnt}</span>
+      </div>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function loadBatches() {
+  try {
+    const batches = (await API.getAllBatches()) || [];
+    const pending = batches.filter(b => b.status === 'pending_approval').slice(0,5);
+    const recent  = batches.slice(0,8);
+    const pendingTb = document.getElementById('pending-tbody');
+    if (pending.length === 0) {
+      pendingTb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#9CA3AF">ไม่มีรายการรอดำเนินการ ✓</td></tr>';
+    } else {
+      pendingTb.innerHTML = pending.map(b => `
+        <tr>
+          <td><div style="font-weight:600">${esc(b.users?.first_name||'')} ${esc(b.users?.last_name||'')}</div><div style="font-size:12px;color:#6B6B8A">${esc(b.users?.email||'')}</div></td>
+          <td><strong>${fmtMoney(b.value_thb)}</strong> ฿</td>
+          <td>${b.quantity} ใบ</td>
+          <td style="font-size:12px;color:#6B6B8A">${fmtDateTime(b.created_at)}</td>
+          <td><a href="?page=admin-vouchers#${b.id}" class="btn btn-primary btn-sm">ตรวจสอบ</a></td>
+        </tr>`).join('');
+    }
+    document.getElementById('recent-tbody').innerHTML = recent.map(b => `
+      <tr>
+        <td><div style="font-weight:600">${esc(b.users?.first_name||'')} ${esc(b.users?.last_name||'')}</div></td>
+        <td style="font-size:13px;color:#6B6B8A">${esc(b.users?.department||'-')}</td>
+        <td><strong>${fmtMoney(b.value_thb)}</strong> ฿</td>
+        <td>${b.quantity} ใบ</td>
+        <td style="font-size:12px;color:#6B6B8A">${fmtDateTime(b.created_at)}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td><a href="?page=admin-vouchers#${b.id}" class="btn btn-outline btn-sm">ดู</a></td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+</script>
+</body>
+</html>

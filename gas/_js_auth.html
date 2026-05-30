@@ -1,0 +1,42 @@
+<script>
+// ============================================================
+// Auth — Session management (localStorage)
+// ============================================================
+const Auth = {
+  getSession() {
+    try {
+      const raw = localStorage.getItem(CONFIG.SESSION_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (new Date(s.expiresAt) < new Date()) { this.clearSession(); return null; }
+      return s;
+    } catch(_) { return null; }
+  },
+  saveSession(data)  { localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(data)); },
+  clearSession()     { localStorage.removeItem(CONFIG.SESSION_KEY); },
+  getUser()          { const s = this.getSession(); return s ? s.user : null; },
+  isLoggedIn()       { return this.getSession() !== null; },
+  isAdmin()          { const u = this.getUser(); return u && u.role === 'admin'; },
+
+  requireLogin() {
+    if (!this.isLoggedIn()) { goPage('login'); return false; }
+    return true;
+  },
+  requireAdmin() {
+    if (!this.requireLogin()) return false;
+    if (!this.isAdmin())   { goPage('user-dashboard'); return false; }
+    return true;
+  },
+  requireUser() {
+    if (!this.requireLogin()) return false;
+    if (this.isAdmin())    { goPage('admin-dashboard'); return false; }
+    return true;
+  },
+
+  async logout() {
+    try { await API.logout(); } catch(_) {}
+    this.clearSession();
+    goPage('login');
+  }
+};
+</script>
