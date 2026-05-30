@@ -1,0 +1,44 @@
+<script>
+// ============================================================
+// CONFIG — App-wide configuration
+// ============================================================
+const CONFIG = {
+  // GAS Web App URL — ดึงจาก server-side อัตโนมัติ
+  GAS_URL: '<?= getAppUrl(); ?>',
+
+  // !! แทนที่ด้วย Supabase anon key ของคุณ !!
+  SUPABASE_URL:      'https://kyumgsqmfxxfkthqikye.supabase.co',
+  SUPABASE_ANON_KEY: 'YOUR_ANON_PUBLIC_KEY',
+
+  STORAGE_BUCKET: 'receipts',
+  SESSION_KEY:    'volta_session',
+
+  PRESET_VALUES: [20, 50, 100, 200, 500, 1000],
+
+  VALUE_CHARS: {
+    1: 'T', 10: 'A', 20: 'B', 50: 'C', 88: 'G',
+    99: 'F', 100: 'X', 200: 'D', 300: 'E', 500: 'Y',
+    1000: 'Z', 1129: 'H', 5000: 'W'
+  },
+
+  STATUS_LABELS: {
+    pending_receipt:  'รอแนบใบเสร็จ',
+    pending_approval: 'รออนุมัติ',
+    approved:         'อนุมัติแล้ว',
+    rejected:         'ตีกลับ',
+    cancelled:        'ยกเลิก'
+  },
+
+  STATUS_COLORS: {
+    pending_receipt:  'badge-warning',
+    pending_approval: 'badge-info',
+    approved:         'badge-success',
+    rejected:         'badge-danger',
+    cancelled:        'badge-secondary'
+  }
+};
+
+// rootPath() ใน GAS = '' เพราะทุก page อยู่ใน URL เดียวกัน
+function rootPath() { return CONFIG.GAS_URL + '?page='; }
+function goPage(name) { window.location.href = rootPath() + name; }
+</script>

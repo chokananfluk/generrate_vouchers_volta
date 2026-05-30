@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Volta Voucher — วิธีใช้งาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <?!= include('_css'); ?>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="nav-avatar">?</div>
+        <div class="user-info"><div class="name" id="nav-user-name">...</div><div class="role" id="nav-user-role">ผู้ใช้งาน</div></div>
+      </div>
+      <button class="logout-btn" onclick="Auth.logout()"><span>🚪</span> ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <span class="topbar-title">วิธีใช้งานระบบ</span>
+      </div>
+    </header>
+
+    <div class="page-content" style="max-width:860px">
+      <div style="margin-bottom:28px">
+        <h1 class="section-title">คู่มือการใช้งาน <span class="gradient-text">Volta Voucher</span></h1>
+        <p class="section-sub">ขั้นตอนการสร้างและติดตามสถานะ Voucher บัตรเติมเงิน</p>
+      </div>
+
+      <!-- Flow diagram -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title" style="margin-bottom:20px">ขั้นตอนการทำงาน</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center">
+          <div style="text-align:center;min-width:100px"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#B000D4,#7A2CFF);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">📝</div><div style="font-size:13px;font-weight:700">1. สร้างคำขอ</div><div style="font-size:12px;color:#6B6B8A">กรอกข้อมูล Voucher</div></div>
+          <div style="font-size:24px;color:#BDB8CC">→</div>
+          <div style="text-align:center;min-width:100px"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#008CFF,#4D4DFF);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">📎</div><div style="font-size:13px;font-weight:700">2. แนบใบเสร็จ</div><div style="font-size:12px;color:#6B6B8A">อัพโหลด PDF/รูป</div></div>
+          <div style="font-size:24px;color:#BDB8CC">→</div>
+          <div style="text-align:center;min-width:100px"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00D9FF,#008CFF);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">⏳</div><div style="font-size:13px;font-weight:700">3. รออนุมัติ</div><div style="font-size:12px;color:#6B6B8A">Admin ตรวจสอบ</div></div>
+          <div style="font-size:24px;color:#BDB8CC">→</div>
+          <div style="text-align:center;min-width:100px"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#22C55E,#16A34A);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">✅</div><div style="font-size:13px;font-weight:700">4. อนุมัติแล้ว</div><div style="font-size:12px;color:#6B6B8A">รับรหัส Voucher</div></div>
+          <div style="font-size:24px;color:#BDB8CC">→</div>
+          <div style="text-align:center;min-width:100px"><div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 8px">⬇️</div><div style="font-size:13px;font-weight:700">5. Export CSV</div><div style="font-size:12px;color:#6B6B8A">ดาวน์โหลดไฟล์</div></div>
+        </div>
+      </div>
+
+      <!-- Step details -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#B000D4,#7A2CFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">1</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700;margin-bottom:8px">สร้างคำขอ Voucher</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7;margin-bottom:12px">ไปที่เมนู <strong>Voucher ของฉัน</strong> แล้วกดปุ่ม <strong>+ สร้าง Voucher</strong></p>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:#F4F0FF;padding:12px;border-radius:8px"><div style="font-size:13px;font-weight:700;color:#7E00A8;margin-bottom:4px">มูลค่า Voucher</div><div style="font-size:13px;color:#6B6B8A">เลือกจากค่าที่กำหนด (฿20–฿1000) หรือระบุเอง</div></div>
+                <div style="background:#F4F0FF;padding:12px;border-radius:8px"><div style="font-size:13px;font-weight:700;color:#7E00A8;margin-bottom:4px">จำนวน Voucher</div><div style="font-size:13px;color:#6B6B8A">สูงสุด 10,000 ใบต่อครั้ง</div></div>
+                <div style="background:#F4F0FF;padding:12px;border-radius:8px"><div style="font-size:13px;font-weight:700;color:#7E00A8;margin-bottom:4px">วันเริ่ม / หมดอายุ</div><div style="font-size:13px;color:#6B6B8A">ช่วงเวลาที่ Voucher ใช้ได้</div></div>
+                <div style="background:#F4F0FF;padding:12px;border-radius:8px"><div style="font-size:13px;font-weight:700;color:#7E00A8;margin-bottom:4px">ระยะหมดอายุหลังใช้</div><div style="font-size:13px;color:#6B6B8A">จำนวนวันที่หมดอายุนับจากใช้งานครั้งแรก</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#008CFF,#4D4DFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">2</div>
+            <div><div style="font-size:16px;font-weight:700;margin-bottom:8px">แนบใบเสร็จชำระเงิน</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7">สถานะจะเป็น <span class="badge badge-warning">รอแนบใบเสร็จ</span> กดปุ่ม <strong>📎 แนบใบเสร็จ</strong> เพื่ออัพโหลด</p>
+              <div style="background:#FEF9C3;padding:12px;border-radius:8px;margin-top:12px;font-size:13px"><strong>⚠️ หมายเหตุ:</strong> PDF, JPG, PNG ขนาดไม่เกิน 10MB</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#00D9FF,#008CFF);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">3</div>
+            <div><div style="font-size:16px;font-weight:700;margin-bottom:8px">รอการอนุมัติจาก Admin</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7">สถานะ <span class="badge badge-info">รออนุมัติ</span> — ระบบส่งอีเมลแจ้ง Admin อัตโนมัติ</p>
+              <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+                <div style="background:#DCFCE7;padding:10px 14px;border-radius:8px;font-size:13px;color:#15803D">✅ <strong>อนุมัติ</strong> — สร้างรหัส Voucher ทันที</div>
+                <div style="background:#FEE2E2;padding:10px 14px;border-radius:8px;font-size:13px;color:#B91C1C">✗ <strong>ตีกลับ</strong> — แก้ไขแล้วแนบใหม่ได้</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;gap:16px;align-items:flex-start">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#D97706);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;flex-shrink:0">4</div>
+            <div><div style="font-size:16px;font-weight:700;margin-bottom:8px">Export ไฟล์ CSV</div>
+              <p style="font-size:14px;color:#6B6B8A;line-height:1.7">เมื่อ <span class="badge badge-success">อนุมัติแล้ว</span> กด <strong>⬇ Export CSV</strong> เพื่อดาวน์โหลด</p>
+              <div style="background:#F4F0FF;padding:12px;border-radius:8px;margin-top:12px">
+                <div style="font-size:13px;font-weight:700;color:#7E00A8;margin-bottom:6px">รูปแบบไฟล์ CSV</div>
+                <code style="font-size:12px;color:#1A1A2E;display:block;line-height:1.8">code, value_thb, expire_date, Duration<br>1eX1DG01naNryX2v, 100, 2026-06-30, 0</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voucher code format -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">รูปแบบรหัส Voucher</div>
+          <div style="font-family:monospace;font-size:22px;font-weight:900;color:#B000D4;letter-spacing:4px;text-align:center;margin-bottom:16px">1 e <span style="color:#D100FF;background:rgba(176,0,212,.1);padding:2px 8px;border-radius:6px">X</span> 1 D G <span style="color:#008CFF;background:rgba(0,140,255,.1);padding:2px 8px;border-radius:6px">0 1</span> n a N r y X 2 v</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+            <div style="background:#F4F0FF;padding:10px;border-radius:8px"><span style="color:#D100FF;font-weight:700">ตำแหน่งที่ 3</span> — รหัสมูลค่า Voucher</div>
+            <div style="background:#EFF6FF;padding:10px;border-radius:8px"><span style="color:#008CFF;font-weight:700">ตำแหน่งที่ 7-8</span> — หมายเลข Lot (01-99)</div>
+          </div>
+          <div style="margin-top:12px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#6B6B8A">ตารางรหัสมูลค่า</div>
+            <div id="value-badges" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?!= include('_js_config'); ?>
+<?!= include('_js_auth');   ?>
+<?!= include('_js_api');    ?>
+<?!= include('_js_utils');  ?>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (!Auth.requireLogin()) return;
+  const user = Auth.getUser();
+  document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
+  document.getElementById('nav-avatar').textContent    = user.firstName[0];
+
+  // เมนูตาม role
+  const isAdmin = Auth.isAdmin();
+  document.getElementById('nav-user-role').textContent = isAdmin ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน';
+  if (isAdmin) document.getElementById('nav-user-role').style.color = '#B000D4';
+
+  const nav = document.getElementById('sidebar-nav');
+  if (isAdmin) {
+    nav.innerHTML = `
+      <div class="nav-section-title">Admin</div>
+      <a href="?page=admin-dashboard" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="?page=admin-vouchers"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="?page=admin-users"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="?page=help"            class="nav-link active"><span class="nav-icon">❓</span> วิธีใช้งาน</a>`;
+  } else {
+    nav.innerHTML = `
+      <div class="nav-section-title">เมนูหลัก</div>
+      <a href="?page=user-dashboard" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="?page=user-vouchers"  class="nav-link"><span class="nav-icon">🎫</span> Voucher ของฉัน</a>
+      <div class="nav-section-title" style="margin-top:8px">บัญชี</div>
+      <a href="?page=user-account"   class="nav-link"><span class="nav-icon">👤</span> บัญชีผู้ใช้</a>
+      <a href="?page=help"            class="nav-link active"><span class="nav-icon">❓</span> วิธีใช้งาน</a>`;
+  }
+
+  // ตารางรหัสมูลค่า
+  const values = [['T','1'],['A','10'],['B','20'],['C','50'],['X','100'],['D','200'],['E','300'],
+                  ['Y','500'],['Z','1,000'],['W','5,000'],['F','99'],['G','88'],['H','1,129'],['O','อื่นๆ']];
+  document.getElementById('value-badges').innerHTML = values.map(([k,v]) =>
+    `<span style="background:#F4F0FF;padding:4px 10px;border-radius:6px;font-size:12px"><strong style="color:#B000D4">${k}</strong> = ฿${v}</span>`
+  ).join('');
+});
+</script>
+</body>
+</html>
