@@ -72,21 +72,26 @@ function dbRpc(funcName, params) {
   try { return JSON.parse(text); } catch(e) { return text; }
 }
 
-// Upload file to Supabase Storage, return public URL
+// Upload file to Google Drive, return shareable view URL
+// (ใช้ Google Drive แทน Supabase Storage เพื่อหลีกเลี่ยงปัญหา RLS)
 function dbUploadFile(fileBlob, filename, contentType) {
-  var url = SUPABASE_URL + '/storage/v1/object/' + SUPABASE_BUCKET + '/' + filename;
-  var options = {
-    method:   'POST',
-    headers: {
-      'apikey':          SUPABASE_KEY,
-      'Authorization':   'Bearer ' + SUPABASE_KEY,
-      'Content-Type':    contentType,
-      'x-upsert':        'true'
-    },
-    payload:            fileBlob,
-    muteHttpExceptions: true
-  };
-  var res = UrlFetchApp.fetch(url, options);
-  if (res.getResponseCode() >= 400) throw new Error('Upload error: ' + res.getContentText());
-  return SUPABASE_URL + '/storage/v1/object/public/' + SUPABASE_BUCKET + '/' + filename;
+  // หาหรือสร้าง folder "volta-receipts" ใน Drive
+  var folderName  = 'volta-receipts';
+  var folderIter  = DriveApp.getFoldersByName(folderName);
+  var driveFolder = folderIter.hasNext()
+    ? folderIter.next()
+    : DriveApp.createFolder(folderName);
+
+  // อัปโหลดไฟล์
+  var driveFile = driveFolder.createFile(fileBlob);
+  driveFile.setName(filename);
+
+  // ให้ "ทุกคนที่มี link" ดูได้
+  driveFile.setSharing(
+    DriveApp.Access.ANYONE_WITH_LINK,
+    DriveApp.Permission.VIEW
+  );
+
+  // คืน link สำหรับดูไฟล์ (admin คลิกดูใบเสร็จได้)
+  return 'https://drive.google.com/file/d/' + driveFile.getId() + '/view';
 }
