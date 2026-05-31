@@ -164,12 +164,39 @@ function getUserBatches(token, filters) {
   return dbSelect('voucher_batches', q.replace('voucher_batches?', ''));
 }
 
-// Get all batches (admin)
+// Get all batches (admin) — แยก user query เพื่อหลีกเลี่ยง PostgREST join issue
 function getAllBatches(adminToken, filters) {
   requireAdmin(adminToken);
-  var q = 'order=created_at.desc&select=*,users(first_name,last_name,email,department)';
+  var q = 'order=created_at.desc';
   if (filters && filters.status) q += '&status=eq.' + filters.status;
-  return dbSelect('voucher_batches', q);
+
+  var batches = dbSelect('voucher_batches', q);
+  if (!Array.isArray(batches) || batches.length === 0) return [];
+
+  // รวบรวม unique user_ids
+  var userIds = [];
+  batches.forEach(function(b) {
+    if (b.user_id && userIds.indexOf(b.user_id) === -1) userIds.push(b.user_id);
+  });
+
+  // ดึง user info ครั้งเดียว
+  var usersMap = {};
+  if (userIds.length > 0) {
+    var uRows = dbSelect('users',
+      'id=in.(' + userIds.join(',') + ')' +
+      '&select=id,first_name,last_name,email,department'
+    );
+    if (Array.isArray(uRows)) {
+      uRows.forEach(function(u) { usersMap[u.id] = u; });
+    }
+  }
+
+  // ฝัง user object เข้า batch แต่ละอัน
+  batches.forEach(function(b) {
+    b.users = b.user_id ? (usersMap[b.user_id] || null) : null;
+  });
+
+  return batches;
 }
 
 // Get codes for a batch

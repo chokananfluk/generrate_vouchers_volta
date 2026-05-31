@@ -126,7 +126,8 @@ async function loadStats() {
 
 async function loadBatches() {
   try {
-    const batches = (await API.getAllBatches()) || [];
+    const result  = await API.getAllBatches();
+    const batches = Array.isArray(result) ? result : [];
     const pending = batches.filter(b => b.status === 'pending_approval').slice(0,5);
     const recent  = batches.slice(0,8);
     const pendingTb = document.getElementById('pending-tbody');

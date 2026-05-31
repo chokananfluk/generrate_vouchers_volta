@@ -144,7 +144,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadBatches() {
   setLoading(true);
-  try { allBatches = (await API.getAllBatches()) || []; filterBatches(); }
+  try {
+    const result = await API.getAllBatches();
+    allBatches = Array.isArray(result) ? result : [];
+    filterBatches();
+  }
   catch(e) { showToast('โหลดข้อมูลไม่สำเร็จ: ' + e.message, 'error'); }
   finally { setLoading(false); }
 }
