@@ -52,12 +52,22 @@ function renderNavUser() {
   const roleEl = document.getElementById('nav-user-role');
   if (roleEl) roleEl.textContent = user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน';
 }
+// อ่าน ?page= จาก URL — ลอง top window ก่อน, fallback ด้วย iframe URL
+function getCurrentPage() {
+  // URL ของ iframe (userCodeAppPanel?page=xxx) ก็มี page param เช่นกัน
+  var sources = [window.location.href];
+  try { sources.unshift(window.top.location.href); } catch(e) {}
+  for (var i = 0; i < sources.length; i++) {
+    try {
+      var p = new URL(sources[i]).searchParams.get('page');
+      if (p) return p;
+    } catch(e) {}
+  }
+  return 'login';
+}
+
 function setActiveNav(page) {
-  var activePage = page;
-  try {
-    var url = new URL(window.top.location.href);
-    activePage = url.searchParams.get('page') || page || 'login';
-  } catch(e) {}
+  var activePage = page || getCurrentPage();
   document.querySelectorAll('.nav-link').forEach(function(a) {
     a.classList.remove('active');
     var oc = a.getAttribute('onclick') || '';
@@ -66,10 +76,7 @@ function setActiveNav(page) {
   });
 }
 function initNavActive() {
-  try {
-    var url = new URL(window.top.location.href);
-    setActiveNav(url.searchParams.get('page') || 'login');
-  } catch(e) {}
+  setActiveNav(getCurrentPage());
 }
 function paginate(items, page, perPage) {
   const total = items.length, pages = Math.ceil(total/perPage), start = (page-1)*perPage;
