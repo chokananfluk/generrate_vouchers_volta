@@ -34,6 +34,14 @@ const Auth = {
   },
 
   async logout() {
+    // แสดง loading overlay
+    var ov = document.getElementById('loading-overlay');
+    if (ov) { ov.style.display = 'flex'; }
+    // เพิ่ม text ถ้ายังไม่มี
+    try {
+      var span = ov ? ov.querySelector('span') : null;
+      if (span) span.textContent = 'กำลังออกจากระบบ...';
+    } catch(e) {}
     try { await API.logout(); } catch(_) {}
     this.clearSession();
     goPage('login');

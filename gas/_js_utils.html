@@ -53,9 +53,23 @@ function renderNavUser() {
   if (roleEl) roleEl.textContent = user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน';
 }
 function setActiveNav(page) {
-  document.querySelectorAll('.nav-link').forEach(a => {
-    a.classList.toggle('active', a.dataset.page === page);
+  var activePage = page;
+  try {
+    var url = new URL(window.top.location.href);
+    activePage = url.searchParams.get('page') || page || 'login';
+  } catch(e) {}
+  document.querySelectorAll('.nav-link').forEach(function(a) {
+    a.classList.remove('active');
+    var oc = a.getAttribute('onclick') || '';
+    var m  = oc.match(/goPage\(['"]([^'"]+)['"]\)/);
+    if (m && m[1] === activePage) a.classList.add('active');
   });
+}
+function initNavActive() {
+  try {
+    var url = new URL(window.top.location.href);
+    setActiveNav(url.searchParams.get('page') || 'login');
+  } catch(e) {}
 }
 function paginate(items, page, perPage) {
   const total = items.length, pages = Math.ceil(total/perPage), start = (page-1)*perPage;

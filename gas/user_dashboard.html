@@ -110,6 +110,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Auth.requireLogin()) return;
   if (Auth.isAdmin()) { goPage('admin-dashboard'); return; }
+  initNavActive();
   const user = Auth.getUser();
   document.getElementById('welcome-name').textContent = user.firstName;
   document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;

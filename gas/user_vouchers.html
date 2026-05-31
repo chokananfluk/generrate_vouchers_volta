@@ -201,7 +201,7 @@ let currentBatchId = null;
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Auth.requireLogin()) return;
   if (Auth.isAdmin()) { goPage('admin-dashboard'); return; }
-
+  initNavActive();
   const user = Auth.getUser();
   document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
   document.getElementById('nav-avatar').textContent    = user.firstName[0];

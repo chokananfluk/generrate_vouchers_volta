@@ -122,12 +122,17 @@ let currentBatchId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Auth.requireAdmin()) return;
+  initNavActive();
   const user = Auth.getUser();
   document.getElementById('nav-user-name').textContent = user.firstName + ' ' + user.lastName;
   document.getElementById('nav-avatar').textContent    = user.firstName[0];
 
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('status')) document.getElementById('status-filter').value = params.get('status');
+  // อ่าน ?status= จาก top window URL (ไม่ใช่ iframe URL)
+  try {
+    const topUrl = new URL(window.top.location.href);
+    const st = topUrl.searchParams.get('status');
+    if (st) document.getElementById('status-filter').value = st;
+  } catch(e) {}
 
   await loadBatches();
 
