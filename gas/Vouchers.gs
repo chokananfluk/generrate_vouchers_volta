@@ -198,9 +198,11 @@ function exportBatchCsv(token, batchId) {
 
 // Helper: get batch and verify ownership
 function getBatchOrThrow_(batchId, userId) {
+  if (!batchId) throw new Error('Batch ID required');
   var rows = dbSelect('voucher_batches', 'id=eq.' + batchId);
-  if (!rows || rows.length === 0) throw new Error('Batch not found');
+  if (!rows || !Array.isArray(rows) || rows.length === 0) throw new Error('Batch not found');
   var batch = rows[0];
+  if (!batch || !batch.id) throw new Error('Batch not found');
   if (batch.user_id !== userId) throw new Error('Access denied');
   return batch;
 }
@@ -208,11 +210,22 @@ function getBatchOrThrow_(batchId, userId) {
 // Get single batch detail
 function getBatchDetail(token, batchId) {
   var user = requireAuth(token);
-  var rows = dbSelect('voucher_batches',
-    'id=eq.' + batchId + '&select=*,users(first_name,last_name,email)'
-  );
-  if (!rows || rows.length === 0) throw new Error('Batch not found');
+  if (!batchId) throw new Error('Batch ID required');
+
+  // Query without JOIN เพื่อหลีกเลี่ยง PostgREST join format issue
+  var rows = dbSelect('voucher_batches', 'id=eq.' + batchId);
+  if (!rows || !Array.isArray(rows) || rows.length === 0) throw new Error('Batch not found');
   var batch = rows[0];
+  if (!batch || !batch.id) throw new Error('Batch not found');
   if (batch.user_id !== user.id && user.role !== 'admin') throw new Error('Access denied');
+
+  // ดึง user info แยกต่างหาก (ปลอดภัยกว่า JOIN)
+  if (batch.user_id) {
+    var uRows = dbSelect('users',
+      'id=eq.' + batch.user_id + '&select=first_name,last_name,email'
+    );
+    batch.users = (uRows && Array.isArray(uRows) && uRows.length > 0) ? uRows[0] : null;
+  }
+
   return batch;
 }
