@@ -16,10 +16,10 @@
     <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">Admin</div>
-      <a href="?page=admin-dashboard" class="nav-link active"><span class="nav-icon">📊</span> ภาพรวม</a>
-      <a href="?page=admin-vouchers"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
-      <a href="?page=admin-users"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
-      <a href="?page=help"             class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+      <a href="javascript:void(0)" onclick="goPage('admin-dashboard')" class="nav-link active"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="javascript:void(0)" onclick="goPage('admin-vouchers')"  class="nav-link"><span class="nav-icon">🎫</span> จัดการ Voucher</a>
+      <a href="javascript:void(0)" onclick="goPage('admin-users')"     class="nav-link"><span class="nav-icon">👥</span> จัดการผู้ใช้</a>
+      <a href="javascript:void(0)" onclick="goPage('help')"            class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-card">
@@ -63,7 +63,7 @@
         <div class="card">
           <div class="card-header">
             <span class="card-title">⏳ รอการอนุมัติ</span>
-            <a href="?page=admin-vouchers&status=pending_approval" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+            <a href="javascript:void(0)" onclick="goPage('admin-vouchers')" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
           </div>
           <div class="table-wrap">
             <table>
@@ -77,7 +77,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">คำขอล่าสุดทั้งหมด</span>
-          <a href="?page=admin-vouchers" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+          <a href="javascript:void(0)" onclick="goPage('admin-vouchers')" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
         </div>
         <div class="table-wrap">
           <table>
@@ -138,7 +138,7 @@ async function loadBatches() {
           <td><strong>${fmtMoney(b.value_thb)}</strong> ฿</td>
           <td>${b.quantity} ใบ</td>
           <td style="font-size:12px;color:#6B6B8A">${fmtDateTime(b.created_at)}</td>
-          <td><a href="?page=admin-vouchers#${b.id}" class="btn btn-primary btn-sm">ตรวจสอบ</a></td>
+          <td><a href="javascript:void(0)" onclick="goPage('admin-vouchers')" class="btn btn-primary btn-sm">ตรวจสอบ</a></td>
         </tr>`).join('');
     }
     document.getElementById('recent-tbody').innerHTML = recent.map(b => `
@@ -149,7 +149,7 @@ async function loadBatches() {
         <td>${b.quantity} ใบ</td>
         <td style="font-size:12px;color:#6B6B8A">${fmtDateTime(b.created_at)}</td>
         <td>${statusBadge(b.status)}</td>
-        <td><a href="?page=admin-vouchers#${b.id}" class="btn btn-outline btn-sm">ดู</a></td>
+        <td><a href="javascript:void(0)" onclick="goPage('admin-vouchers')" class="btn btn-outline btn-sm">ดู</a></td>
       </tr>`).join('');
   } catch(e) { console.error(e); }
 }

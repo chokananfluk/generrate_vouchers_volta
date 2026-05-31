@@ -40,5 +40,5 @@ const CONFIG = {
 
 // rootPath() ใน GAS = '' เพราะทุก page อยู่ใน URL เดียวกัน
 function rootPath() { return CONFIG.GAS_URL + '?page='; }
-function goPage(name) { window.location.href = rootPath() + name; }
+function goPage(name) { window.top.location.href = rootPath() + name; }
 </script>

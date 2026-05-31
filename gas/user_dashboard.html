@@ -19,11 +19,11 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">เมนูหลัก</div>
-      <a href="?page=user-dashboard" class="nav-link active" data-page="dashboard"><span class="nav-icon">📊</span> ภาพรวม</a>
-      <a href="?page=user-vouchers"  class="nav-link" data-page="vouchers"><span class="nav-icon">🎫</span> Voucher ของฉัน</a>
+      <a href="javascript:void(0)" onclick="goPage('user-dashboard')" class="nav-link active" data-page="dashboard"><span class="nav-icon">📊</span> ภาพรวม</a>
+      <a href="javascript:void(0)" onclick="goPage('user-vouchers')"  class="nav-link" data-page="vouchers"><span class="nav-icon">🎫</span> Voucher ของฉัน</a>
       <div class="nav-section-title" style="margin-top:8px">บัญชี</div>
-      <a href="?page=user-account" class="nav-link" data-page="account"><span class="nav-icon">👤</span> บัญชีผู้ใช้</a>
-      <a href="?page=help"          class="nav-link" data-page="help"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
+      <a href="javascript:void(0)" onclick="goPage('user-account')"  class="nav-link" data-page="account"><span class="nav-icon">👤</span> บัญชีผู้ใช้</a>
+      <a href="javascript:void(0)" onclick="goPage('help')"          class="nav-link" data-page="help"><span class="nav-icon">❓</span> วิธีใช้งาน</a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-card">
@@ -44,8 +44,8 @@
         <span class="topbar-title">ภาพรวม</span>
       </div>
       <div class="topbar-right">
-        <a href="?page=user-vouchers" class="btn btn-primary btn-sm">+ สร้าง Voucher</a>
-        <a href="?page=user-account" id="notif-btn" style="position:relative;cursor:pointer;font-size:22px;text-decoration:none">
+        <a href="javascript:void(0)" onclick="goPage('user-vouchers')" class="btn btn-primary btn-sm">+ สร้าง Voucher</a>
+        <a href="javascript:void(0)" onclick="goPage('user-account')" id="notif-btn" style="position:relative;cursor:pointer;font-size:22px;text-decoration:none">
           🔔<span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#B000D4;color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span>
         </a>
       </div>
@@ -78,7 +78,7 @@
         <div class="card">
           <div class="card-header">
             <span class="card-title">คำขอล่าสุด</span>
-            <a href="?page=user-vouchers" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
+            <a href="javascript:void(0)" onclick="goPage('user-vouchers')" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ดูทั้งหมด →</a>
           </div>
           <div class="table-wrap">
             <table>
