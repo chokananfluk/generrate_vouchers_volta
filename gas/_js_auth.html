@@ -2,7 +2,7 @@
 // ============================================================
 // Auth — Session management (localStorage)
 // ============================================================
-const Auth = {
+var Auth = {   // var (ไม่ใช่ const) — กัน "already declared" เมื่อ GAS re-run script
   getSession() {
     try {
       const raw = localStorage.getItem(CONFIG.SESSION_KEY);

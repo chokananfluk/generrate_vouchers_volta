@@ -2,7 +2,7 @@
 // ============================================================
 // API — GAS API wrapper + Supabase Storage upload
 // ============================================================
-const API = {
+var API = {   // var (ไม่ใช่ const) — กัน "already declared" เมื่อ GAS re-run script
   async call(action, body = {}) {
     const session = Auth.getSession();
     const payload = { action, ...body };

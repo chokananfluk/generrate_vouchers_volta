@@ -44,14 +44,17 @@ function login(email, password) {
 function requireAuth(token) {
   if (!token) throw new Error('Unauthorized');
 
+  // แยก query แทน PostgREST join (select=*,users(*)) เพราะ join พังใน Supabase ตัวนี้
+  // เหมือนที่ getAllBatches/getBatchDetail ทำ — ป้องกัน 401 จาก join error
   var rows = dbSelect('sessions',
-    'token=eq.' + token + '&expires_at=gt.' + new Date().toISOString() +
-    '&select=*,users(*)'
+    'token=eq.' + token + '&expires_at=gt.' + new Date().toISOString()
   );
 
-  if (!rows || rows.length === 0) throw new Error('Session expired or invalid');
+  if (!rows || !Array.isArray(rows) || rows.length === 0) throw new Error('Session expired or invalid');
   var session = rows[0];
-  var user = session.users;
+
+  var uRows = dbSelect('users', 'id=eq.' + session.user_id);
+  var user = (uRows && Array.isArray(uRows) && uRows.length > 0) ? uRows[0] : null;
   if (!user || !user.is_active) throw new Error('Account inactive');
 
   return {

@@ -2,7 +2,8 @@
 // ============================================================
 // CONFIG — App-wide configuration
 // ============================================================
-const CONFIG = {
+// ใช้ var (ไม่ใช่ const) เพราะ GAS HtmlService IFRAME อาจ re-run script → const จะ throw "already declared"
+var CONFIG = {
   // GAS Web App URL — ดึงจาก server-side อัตโนมัติ
   GAS_URL: '<?= getAppUrl(); ?>',
 

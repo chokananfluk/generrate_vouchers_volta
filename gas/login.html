@@ -136,12 +136,18 @@
 
     try {
       const session = await API.login(email, password);
+      if (!session || !session.user) throw new Error('ไม่ได้รับข้อมูลเซสชันจากเซิร์ฟเวอร์ (ตรวจ GAS_URL/deployment)');
       Auth.saveSession(session);
       const user = session.user;
       goPage(user.role === 'admin' ? 'admin-dashboard' : 'user-dashboard');
     } catch(err) {
-      errEl.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+      const msg = (err && err.message) || '';
+      // ถ้าเป็นรหัส/อีเมลผิดจริง backend จะส่ง "Invalid credentials" — กรณีอื่นโชว์ error จริงเพื่อ debug
+      errEl.textContent = /invalid credentials/i.test(msg)
+        ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง'
+        : ('เข้าสู่ระบบไม่สำเร็จ: ' + msg);
       errEl.style.display = 'block';
+      console.error('[login] error:', err, '| GAS_URL =', (typeof CONFIG !== 'undefined' ? CONFIG.GAS_URL : 'CONFIG undefined'));
       btn.disabled = false;
       btnText.style.display = 'inline';
       btnSpin.style.display = 'none';
