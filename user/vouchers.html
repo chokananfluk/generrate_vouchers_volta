@@ -235,6 +235,22 @@
   </div>
 </div>
 
+<!-- MODAL: RECEIPT PREVIEW -->
+<div class="modal-overlay" id="modal-receipt-view">
+  <div class="modal modal-xl" style="height:82vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span class="modal-title">📄 ใบเสร็จ</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="receipt-view-link" href="#" target="_blank" class="btn btn-outline btn-sm">🔗 เปิดในแท็บใหม่</a>
+        <button class="modal-close" onclick="closeModal('modal-receipt-view')">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;border-radius:0 0 16px 16px">
+      <iframe id="receipt-view-frame" src="" style="width:100%;height:100%;border:none"></iframe>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================
      MODAL: CANCEL CONFIRM
      ============================================================ -->
@@ -539,7 +555,7 @@ async function openDetail(batchId) {
       </div>
       ${b.notes      ? `<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ:</strong> ${esc(b.notes)}</div>` : ''}
       ${b.admin_notes? `<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>` : ''}
-      ${b.receipt_url? `<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จ</a></div>` : ''}
+      ${b.receipt_url? `<div style="margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="previewReceipt('${b.receipt_url}')">📄 ดูใบเสร็จ</button></div>` : ''}
       ${codesHtml}`;
 
     const footer = document.getElementById('detail-footer');
@@ -556,6 +572,13 @@ async function openDetail(batchId) {
 }
 
 // ---- CANCEL ----
+function previewReceipt(url) {
+  var previewUrl = url.replace(/\/view(\?.*)?$/, '/preview');
+  document.getElementById('receipt-view-frame').src = previewUrl;
+  document.getElementById('receipt-view-link').href = url;
+  openModal('modal-receipt-view');
+}
+
 function askCancel(id) { currentBatchId = id; openModal('modal-cancel'); }
 
 async function confirmCancel() {

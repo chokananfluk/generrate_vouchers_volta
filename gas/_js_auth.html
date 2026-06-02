@@ -23,13 +23,13 @@ const Auth = {
     return true;
   },
   requireAdmin() {
-    if (!this.requireLogin()) return false;
-    if (!this.isAdmin())   { goPage('user-dashboard'); return false; }
+    if (!this.isLoggedIn()) { goPage('login');            return false; }
+    if (!this.isAdmin())    { goPage('user-dashboard');   return false; }
     return true;
   },
   requireUser() {
-    if (!this.requireLogin()) return false;
-    if (this.isAdmin())    { goPage('admin-dashboard'); return false; }
+    if (!this.isLoggedIn()) { goPage('login');            return false; }
+    if (this.isAdmin())     { goPage('admin-dashboard');  return false; }
     return true;
   },
 

@@ -15,7 +15,8 @@
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+      <img data-logo class="brand-logo-side" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">เมนูหลัก</div>
@@ -44,7 +45,6 @@
         <span class="topbar-title">ภาพรวม</span>
       </div>
       <div class="topbar-right">
-        <a href="javascript:void(0)" onclick="goPage('user-vouchers')" class="btn btn-primary btn-sm">+ สร้าง Voucher</a>
         <a href="javascript:void(0)" onclick="goPage('user-account')" id="notif-btn" style="position:relative;cursor:pointer;font-size:22px;text-decoration:none">
           🔔<span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#B000D4;color:white;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span>
         </a>
@@ -82,7 +82,7 @@
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>วันที่</th><th>มูลค่า</th><th>จำนวน</th><th>สถานะ</th><th></th></tr></thead>
+              <thead><tr><th>วันที่</th><th>มูลค่า</th><th>จำนวน</th><th>สถานะ</th></tr></thead>
               <tbody id="recent-batches"><tr><td colspan="5" style="text-align:center;padding:32px;color:#9CA3AF">กำลังโหลด...</td></tr></tbody>
             </table>
           </div>
@@ -151,7 +151,6 @@ async function loadRecentBatches() {
         <td><strong>${fmtMoney(b.value_thb)}</strong> บาท</td>
         <td>${b.quantity} ใบ</td>
         <td>${statusBadge(b.status)}</td>
-        <td><a href="?page=user-vouchers#${b.id}" class="btn btn-outline btn-sm">ดู</a></td>
       </tr>`).join('');
   } catch(e) { console.error(e); }
 }

@@ -52,9 +52,8 @@ function renderNavUser() {
   const roleEl = document.getElementById('nav-user-role');
   if (roleEl) roleEl.textContent = user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน';
 }
-// อ่าน ?page= จาก URL — ลอง top window ก่อน, fallback ด้วย iframe URL
+// อ่าน ?page= จาก URL — ลอง top window ก่อน, fallback ด้วย iframe URL, แล้ว hardcoded active
 function getCurrentPage() {
-  // URL ของ iframe (userCodeAppPanel?page=xxx) ก็มี page param เช่นกัน
   var sources = [window.location.href];
   try { sources.unshift(window.top.location.href); } catch(e) {}
   for (var i = 0; i < sources.length; i++) {
@@ -62,6 +61,13 @@ function getCurrentPage() {
       var p = new URL(sources[i]).searchParams.get('page');
       if (p) return p;
     } catch(e) {}
+  }
+  // URL ไม่มี page param → อ่านจาก active link ที่ hardcoded ใน HTML
+  var activeLink = document.querySelector('.nav-link.active');
+  if (activeLink) {
+    var oc = activeLink.getAttribute('onclick') || '';
+    var m  = oc.match(/goPage\(['"]([^'"]+)['"]\)/);
+    if (m) return m[1];
   }
   return 'login';
 }

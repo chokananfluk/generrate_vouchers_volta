@@ -75,25 +75,41 @@ body {
 }
 
 .nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 10px 12px 10px 16px;
   border-radius: 10px;
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 2px;
-  transition: background .15s, color .15s;
+  transition: background .15s, color .15s, transform .15s, box-shadow .15s;
 }
 .nav-link:hover { background: var(--bg-light); color: var(--purple-main); }
 .nav-link.active {
-  background: linear-gradient(135deg, rgba(176,0,212,.12), rgba(122,44,255,.08));
+  background: linear-gradient(135deg, rgba(176,0,212,.18), rgba(122,44,255,.12));
   color: var(--purple-main);
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--purple-main), 0 2px 8px rgba(176,0,212,.10);
 }
-.nav-link .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+.nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--purple-hi), var(--purple-blend));
+}
+.nav-link.active .nav-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 1px 2px rgba(176,0,212,.30));
+}
+.nav-link .nav-icon { font-size: 18px; width: 22px; text-align: center; transition: transform .15s; }
 
 .sidebar-footer {
   padding: 16px 12px;

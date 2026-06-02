@@ -64,6 +64,10 @@ body {
 
 .sidebar-logo img { width: 160px; height: auto; }
 
+/* App logo (base64, injected via CONFIG.LOGO_URL) */
+.brand-logo-side  { width: 160px; height: auto; display: block; }
+.login-brand-logo { width: 240px; height: auto; margin: 0 auto 24px; display: block; filter: brightness(0) invert(1); }
+
 .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
 
 .nav-section-title {
@@ -76,25 +80,41 @@ body {
 }
 
 .nav-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 10px 12px 10px 16px;
   border-radius: 10px;
   color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 2px;
-  transition: background .15s, color .15s;
+  transition: background .15s, color .15s, transform .15s, box-shadow .15s;
 }
 .nav-link:hover { background: var(--bg-light); color: var(--purple-main); }
 .nav-link.active {
-  background: linear-gradient(135deg, rgba(176,0,212,.12), rgba(122,44,255,.08));
+  background: linear-gradient(135deg, rgba(176,0,212,.18), rgba(122,44,255,.12));
   color: var(--purple-main);
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--purple-main), 0 2px 8px rgba(176,0,212,.10);
 }
-.nav-link .nav-icon { font-size: 18px; width: 22px; text-align: center; }
+.nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--purple-hi), var(--purple-blend));
+}
+.nav-link.active .nav-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 1px 2px rgba(176,0,212,.30));
+}
+.nav-link .nav-icon { font-size: 18px; width: 22px; text-align: center; transition: transform .15s; }
 
 .sidebar-footer {
   padding: 16px 12px;
@@ -210,10 +230,19 @@ body {
 
 .stat-icon {
   position: absolute;
-  right: 16px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 36px;
-  opacity: .12;
+  right: 16px; top: 16px;
+  width: 46px; height: 46px;
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 23px;
+  background: linear-gradient(135deg, rgba(176,0,212,.16), rgba(0,217,255,.16));
+  box-shadow: inset 0 0 0 1px rgba(176,0,212,.12), 0 4px 12px rgba(126,0,168,.10);
+  opacity: 1;
+}
+.stat-card:hover .stat-icon {
+  background: linear-gradient(135deg, var(--purple-main), var(--purple-blend));
+  transform: scale(1.06);
+  transition: all .2s;
 }
 
 /* ============================================================
@@ -411,6 +440,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   backdrop-filter: blur(2px);
 }
 .modal-overlay.open { display: flex; }
+/* โมดัลพรีวิวใบเสร็จ ต้องอยู่หน้าโมดัลรายละเอียดเสมอ */
+#modal-receipt-view { z-index: 1100; }
 
 .modal {
   background: white;
@@ -557,13 +588,23 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .login-brand img { width: 220px; margin-bottom: 24px; filter: brightness(0) invert(1); }
 .login-brand p { color: rgba(255,255,255,.85); font-size: 16px; line-height: 1.6; max-width: 320px; margin: 0 auto; }
 
+/* password show/hide toggle (ใช้ได้ทุกหน้า) */
+.input-wrap { position: relative; }
+.pw-toggle  {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  cursor: pointer; color: #9CA3AF; background: none; border: none; font-size: 18px;
+  padding: 0; line-height: 1;
+}
+
 .login-right {
   width: 480px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 40px;
+  padding-top: 60px;
   background: white;
+  overflow-y: auto;
 }
 
 .login-box { width: 100%; max-width: 360px; }

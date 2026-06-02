@@ -20,7 +20,8 @@
   <!-- Left brand panel -->
   <div class="login-left">
     <div class="login-brand">
-      <div style="color:white;font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:24px">
+      <img data-logo class="login-brand-logo" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="color:white;font-size:32px;font-weight:900;letter-spacing:-1px;margin-bottom:24px">
         ⚡ Volta Voucher
       </div>
       <p>ระบบสร้างและจัดการ Voucher<br>บัตรเติมเงินสำหรับองค์กร</p>
@@ -44,33 +45,63 @@
   <!-- Right login form -->
   <div class="login-right">
     <div class="login-box">
-      <h2>เข้าสู่ระบบ</h2>
-      <p>กรุณากรอกอีเมลและรหัสผ่านของคุณ</p>
+      <div id="login-view">
+        <h2>เข้าสู่ระบบ</h2>
+        <p>กรุณากรอกอีเมลและรหัสผ่านของคุณ</p>
 
-      <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">อีเมล <span class="required">*</span></label>
-          <input id="email" type="email" class="form-control" placeholder="example@company.com" required autocomplete="email">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">รหัสผ่าน <span class="required">*</span></label>
-          <div class="input-wrap">
-            <input id="password" type="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
-            <button type="button" class="pw-toggle" onclick="togglePassword()" id="pw-eye">👁</button>
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">อีเมล <span class="required">*</span></label>
+            <input id="email" type="email" class="form-control" placeholder="example@company.com" required autocomplete="email">
           </div>
+
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน <span class="required">*</span></label>
+            <div class="input-wrap">
+              <input id="password" type="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+              <button type="button" class="pw-toggle" onclick="togglePassword()" id="pw-eye">👁</button>
+            </div>
+          </div>
+
+          <div id="error-msg" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+
+          <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
+            <span id="btn-text">เข้าสู่ระบบ</span>
+            <span id="btn-spinner" style="display:none">กำลังเข้าสู่ระบบ...</span>
+          </button>
+        </form>
+
+        <div style="text-align:center;margin-top:16px">
+          <a href="javascript:void(0)" onclick="showForgot()" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">ลืมรหัสผ่าน?</a>
         </div>
+      </div>
 
-        <div id="error-msg" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+      <!-- Forgot password view -->
+      <div id="forgot-view" style="display:none">
+        <h2>ลืมรหัสผ่าน</h2>
+        <p>กรอกอีเมลของคุณ ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปให้ทางอีเมล</p>
 
-        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
-          <span id="btn-text">เข้าสู่ระบบ</span>
-          <span id="btn-spinner" style="display:none">กำลังเข้าสู่ระบบ...</span>
-        </button>
-      </form>
+        <form id="forgot-form" onsubmit="handleForgot(event)">
+          <div class="form-group">
+            <label class="form-label">อีเมล <span class="required">*</span></label>
+            <input id="forgot-email" type="email" class="form-control" placeholder="example@company.com" required autocomplete="email">
+          </div>
+
+          <div id="forgot-msg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+
+          <button type="submit" id="forgot-btn" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">
+            <span id="forgot-btn-text">ส่งลิงก์รีเซ็ตรหัสผ่าน</span>
+            <span id="forgot-btn-spinner" style="display:none">กำลังส่ง...</span>
+          </button>
+        </form>
+
+        <div style="text-align:center;margin-top:16px">
+          <a href="javascript:void(0)" onclick="showLogin()" style="font-size:13px;color:#B000D4;font-weight:600;text-decoration:none">← กลับไปเข้าสู่ระบบ</a>
+        </div>
+      </div>
 
       <p style="margin-top:24px;font-size:12px;color:#9CA3AF;text-align:center">
-        © 2025 Volta Voucher. All rights reserved.
+        © 2026 Volta Voucher. All rights reserved.
       </p>
     </div>
   </div>
@@ -122,6 +153,41 @@
     const eye = document.getElementById('pw-eye');
     if (inp.type === 'password') { inp.type = 'text';     eye.textContent = '🙈'; }
     else                         { inp.type = 'password'; eye.textContent = '👁';  }
+  }
+
+  // ---- Forgot password ----
+  function showForgot() {
+    document.getElementById('login-view').style.display  = 'none';
+    document.getElementById('forgot-view').style.display = 'block';
+  }
+  function showLogin() {
+    document.getElementById('forgot-view').style.display = 'none';
+    document.getElementById('login-view').style.display  = 'block';
+  }
+
+  async function handleForgot(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value.trim();
+    const msg   = document.getElementById('forgot-msg');
+    const btn   = document.getElementById('forgot-btn');
+    const txt   = document.getElementById('forgot-btn-text');
+    const spin  = document.getElementById('forgot-btn-spinner');
+
+    msg.style.display = 'none';
+    btn.disabled = true; txt.style.display = 'none'; spin.style.display = 'inline';
+
+    try {
+      await API.forgotPassword(email);
+      msg.style.background = '#DCFCE7'; msg.style.color = '#15803D';
+      msg.textContent = 'หากอีเมลนี้มีอยู่ในระบบ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปให้แล้ว กรุณาตรวจสอบกล่องจดหมาย (รวมถึงโฟลเดอร์สแปม)';
+      msg.style.display = 'block';
+    } catch(err) {
+      msg.style.background = '#FEE2E2'; msg.style.color = '#DC2626';
+      msg.textContent = 'เกิดข้อผิดพลาด: ' + err.message;
+      msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; txt.style.display = 'inline'; spin.style.display = 'none';
+    }
   }
 </script>
 </body>

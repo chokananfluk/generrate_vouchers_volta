@@ -98,3 +98,76 @@ function adminResetPassword(adminToken, userId, newPassword) {
   dbUpdate('users', 'id=eq.' + userId, { password_hash: newHash });
   return true;
 }
+
+// ============================================================
+// Forgot / reset password (self-service via emailed token link)
+// Token is stored in ScriptProperties (no DB schema change needed)
+// ============================================================
+var RESET_TTL_MIN = 60;
+
+// Create a reset token for a user, store it, and email the reset link
+function issuePasswordReset_(user) {
+  var token = generateToken();
+  var expires = Date.now() + RESET_TTL_MIN * 60 * 1000;
+
+  PropertiesService.getScriptProperties().setProperty('reset_' + token, JSON.stringify({
+    userId:  user.id,
+    email:   user.email,
+    expires: expires
+  }));
+
+  var resetUrl = getAppUrl() + '?page=reset&token=' + token;
+  sendPasswordResetEmail(user, resetUrl);
+}
+
+// Step 1: user requests a reset link by email
+function forgotPassword(email) {
+  if (!email) throw new Error('Email required');
+
+  var rows = dbSelect('users', 'email=eq.' + encodeURIComponent(email) + '&is_active=eq.true');
+  // Always succeed regardless of whether the email exists (avoid user enumeration)
+  if (rows && rows.length > 0) {
+    issuePasswordReset_(rows[0]);
+  }
+  return { ok: true };
+}
+
+// Admin triggers a self-service reset link to a user (admin does NOT set the password)
+function adminSendPasswordReset(adminToken, userId) {
+  requireAdmin(adminToken);
+  if (!userId) throw new Error('User ID required');
+
+  var rows = dbSelect('users', 'id=eq.' + userId + '&is_active=eq.true');
+  if (!rows || rows.length === 0) throw new Error('User not found');
+
+  var user = rows[0];
+  issuePasswordReset_(user);
+  return { ok: true, email: user.email };
+}
+
+// Step 2: user submits a new password with the token
+function resetPassword(token, newPassword) {
+  if (!token || !newPassword) throw new Error('Token and new password required');
+  if (String(newPassword).length < 6) throw new Error('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+
+  var props = PropertiesService.getScriptProperties();
+  var key   = 'reset_' + token;
+  var raw   = props.getProperty(key);
+  if (!raw) throw new Error('ลิงก์รีเซ็ตไม่ถูกต้องหรือถูกใช้ไปแล้ว');
+
+  var info;
+  try { info = JSON.parse(raw); } catch(_) { throw new Error('ลิงก์รีเซ็ตไม่ถูกต้อง'); }
+
+  if (!info.expires || Date.now() > info.expires) {
+    props.deleteProperty(key);
+    throw new Error('ลิงก์รีเซ็ตหมดอายุแล้ว กรุณาขอลิงก์ใหม่');
+  }
+
+  dbUpdate('users', 'id=eq.' + info.userId, { password_hash: hashPassword(newPassword) });
+  props.deleteProperty(key);
+
+  // Invalidate any existing sessions for this user (force re-login everywhere)
+  dbDelete('sessions', 'user_id=eq.' + info.userId);
+
+  return { ok: true };
+}

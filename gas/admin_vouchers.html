@@ -13,7 +13,10 @@
 
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <div class="sidebar-logo">
+      <img data-logo class="brand-logo-side" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">Admin</div>
       <a href="javascript:void(0)" onclick="goPage('admin-dashboard')" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
@@ -36,6 +39,7 @@
         <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
         <span class="topbar-title">จัดการ Voucher</span>
       </div>
+      <button class="btn btn-primary" onclick="openCreateModal()">+ สร้าง Voucher</button>
     </header>
 
     <div class="page-content">
@@ -67,6 +71,81 @@
         </div>
         <div id="pagination" class="pagination"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADMIN CREATE VOUCHER (สร้างเอง + แนบใบเสร็จ + ออกโค้ดทันที ไม่ต้องอนุมัติ) -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">สร้าง Voucher (ออกทันที)</span>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#6B6B8A;background:#F4F0FF;padding:10px 14px;border-radius:8px;margin-bottom:16px">ℹ️ Voucher ที่แอดมินสร้างจะถูกออกโค้ดทันทีโดยไม่ต้องผ่านการอนุมัติ แต่ต้องแนบใบเสร็จ/หลักฐานการชำระเงิน</p>
+
+      <div class="form-group">
+        <label class="form-label">มูลค่า Voucher (บาท) <span class="required">*</span></label>
+        <div class="value-selector" id="value-chips">
+          <div class="value-chip" onclick="selectValue(20)"   data-val="20">฿20</div>
+          <div class="value-chip" onclick="selectValue(50)"   data-val="50">฿50</div>
+          <div class="value-chip" onclick="selectValue(100)"  data-val="100">฿100</div>
+          <div class="value-chip" onclick="selectValue(200)"  data-val="200">฿200</div>
+          <div class="value-chip" onclick="selectValue(500)"  data-val="500">฿500</div>
+          <div class="value-chip" onclick="selectValue(1000)" data-val="1000">฿1,000</div>
+          <div class="value-chip" onclick="selectValue('custom')" data-val="custom">ระบุเอง</div>
+        </div>
+        <input type="number" id="custom-value" class="form-control" placeholder="ระบุมูลค่า (บาท)" min="1" style="display:none;margin-top:8px">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">จำนวน Voucher <span class="required">*</span></label><input type="number" id="quantity" class="form-control" placeholder="เช่น 100" min="1" max="10000"></div>
+        <div class="form-group"><label class="form-label">ระยะเวลาหลังใช้งาน (วัน)</label><input type="number" id="duration-days" class="form-control" placeholder="0 = ไม่กำหนด" min="0" value="0"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">วันเริ่มใช้งาน</label><input type="date" id="start-date" class="form-control"></div>
+        <div class="form-group"><label class="form-label">วันหมดอายุ</label><input type="date" id="expire-date" class="form-control"></div>
+      </div>
+
+      <div class="form-group"><label class="form-label">หมายเหตุ</label><textarea id="notes" class="form-control" placeholder="ระบุรายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>
+
+      <div class="form-group">
+        <label class="form-label">ใบเสร็จ / หลักฐานการชำระเงิน <span class="required">*</span></label>
+        <div class="file-drop" id="file-drop-zone" onclick="document.getElementById('receipt-file').click()"
+             ondragover="event.preventDefault();this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="handleFileDrop(event)">
+          <div class="file-drop-icon">📎</div>
+          <div class="file-drop-text">ลากไฟล์มาวางที่นี่ หรือ <span class="file-drop-link">เลือกไฟล์</span></div>
+          <div style="font-size:12px;color:#BDB8CC;margin-top:4px">PDF, JPG, PNG ≤ 10MB</div>
+        </div>
+        <input type="file" id="receipt-file" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+        <div id="receipt-preview" style="display:none;margin-top:12px"></div>
+      </div>
+
+      <div id="create-error" style="display:none;background:#FEE2E2;color:#DC2626;padding:10px 14px;border-radius:8px;font-size:13px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-create')">ยกเลิก</button>
+      <button class="btn btn-primary" id="btn-create" onclick="submitAdminCreate()">✓ สร้างและออก Voucher</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: RECEIPT PREVIEW -->
+<div class="modal-overlay" id="modal-receipt-view">
+  <div class="modal modal-xl" style="height:82vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span class="modal-title">📄 ใบเสร็จ</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="receipt-view-link" href="#" target="_blank" class="btn btn-outline btn-sm">🔗 เปิดในแท็บใหม่</a>
+        <button class="modal-close" onclick="closeModal('modal-receipt-view')">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;border-radius:0 0 16px 16px">
+      <iframe id="receipt-view-frame" src="" style="width:100%;height:100%;border:none"></iframe>
     </div>
   </div>
 </div>
@@ -119,6 +198,8 @@ let allBatches   = [];
 let currentPage  = 1;
 const PER_PAGE   = 15;
 let currentBatchId = null;
+let selectedValue  = null;   // มูลค่าที่เลือกในโมดัลสร้าง Voucher
+let selectedFile   = null;   // ไฟล์ใบเสร็จที่แนบ
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!Auth.requireAdmin()) return;
@@ -211,6 +292,85 @@ function renderTable(filtered) {
 
 function changePage(p) { currentPage = p; filterBatches(); }
 
+// ---- Admin สร้าง Voucher เอง (ออกทันที + แนบใบเสร็จ) ----
+function openCreateModal() {
+  selectedValue = null; selectedFile = null;
+  document.querySelectorAll('#value-chips .value-chip').forEach(c => c.classList.remove('selected'));
+  const cv = document.getElementById('custom-value');
+  cv.style.display = 'none'; cv.value = '';
+  ['quantity','start-date','expire-date','notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('duration-days').value = '0';
+  document.getElementById('receipt-file').value = '';
+  document.getElementById('receipt-preview').style.display = 'none';
+  document.getElementById('create-error').style.display = 'none';
+  openModal('modal-create');
+}
+
+function selectValue(val) {
+  document.querySelectorAll('#value-chips .value-chip').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  const customInput = document.getElementById('custom-value');
+  if (val === 'custom') { customInput.style.display = 'block'; customInput.focus(); selectedValue = null; }
+  else                  { customInput.style.display = 'none'; selectedValue = val; }
+}
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('file-drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0]; if (file) processFile(file);
+}
+function handleFileSelect(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
+function processFile(file) {
+  const errEl = document.getElementById('create-error');
+  errEl.style.display = 'none';
+  if (file.size > 10 * 1024 * 1024) { errEl.textContent = 'ไฟล์ใหญ่เกิน 10MB'; errEl.style.display = 'block'; return; }
+  selectedFile = file;
+  const sizeMB  = (file.size / 1024 / 1024).toFixed(2);
+  const preview = document.getElementById('receipt-preview');
+  preview.innerHTML = `<div class="receipt-preview">
+    <span class="receipt-icon">${file.type.includes('pdf') ? '📄' : '🖼'}</span>
+    <div><div class="receipt-name">${esc(file.name)}</div><div class="receipt-size">${sizeMB} MB</div></div>
+  </div>`;
+  preview.style.display = 'block';
+}
+
+async function submitAdminCreate() {
+  const errEl = document.getElementById('create-error');
+  errEl.style.display = 'none';
+  const customInput = document.getElementById('custom-value');
+  const isCustom = document.querySelector('#value-chips .value-chip[data-val="custom"]')?.classList.contains('selected');
+  if (isCustom) selectedValue = parseFloat(customInput.value);
+  const qty = parseInt(document.getElementById('quantity').value);
+
+  if (!selectedValue || selectedValue <= 0) { errEl.textContent = 'กรุณาเลือกหรือระบุมูลค่า Voucher'; errEl.style.display = 'block'; return; }
+  if (!qty || qty <= 0)                       { errEl.textContent = 'กรุณาระบุจำนวน Voucher';        errEl.style.display = 'block'; return; }
+  if (!selectedFile)                          { errEl.textContent = 'กรุณาแนบใบเสร็จ/หลักฐานการชำระเงิน'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'กำลังสร้าง...';
+  setLoading(true);
+  try {
+    const up = await API.uploadReceipt(selectedFile, 'admin_' + Date.now());
+    const res = await API.adminCreateVoucher({
+      value_thb:     selectedValue,
+      quantity:      qty,
+      start_date:    document.getElementById('start-date').value  || null,
+      expire_date:   document.getElementById('expire-date').value || null,
+      duration_days: parseInt(document.getElementById('duration-days').value) || 0,
+      notes:         document.getElementById('notes').value,
+      receipt_url:      up.url,
+      receipt_filename: up.filename
+    });
+    closeModal('modal-create');
+    showToast('สร้างและออก Voucher สำเร็จ (' + (res ? res.codesGenerated : qty) + ' ใบ)', 'success');
+    await loadBatches();
+  } catch(e) {
+    errEl.textContent = 'เกิดข้อผิดพลาด: ' + e.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ สร้างและออก Voucher'; setLoading(false);
+  }
+}
+
 async function openDetail(batchId) {
   currentBatchId = batchId;
   openModal('modal-detail');
@@ -250,7 +410,7 @@ async function openDetail(batchId) {
       </div>
       ${b.notes?`<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ User:</strong> ${esc(b.notes)}</div>`:''}
       ${b.admin_notes?`<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>`:''}
-      ${b.receipt_url?`<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จแนบ</a></div>`:'<div style="background:#FEE2E2;padding:10px;border-radius:8px;font-size:13px;color:#B91C1C;margin-bottom:12px">⚠️ ยังไม่มีใบเสร็จแนบ</div>'}
+      ${b.receipt_url?`<div style="margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="previewReceipt('${b.receipt_url}')">📄 ดูใบเสร็จแนบ</button></div>`:'<div style="background:#FEE2E2;padding:10px;border-radius:8px;font-size:13px;color:#B91C1C;margin-bottom:12px">⚠️ ยังไม่มีใบเสร็จแนบ</div>'}
       ${codesHtml}`;
     const footer = document.getElementById('detail-footer');
     if (b.status === 'pending_approval') {
@@ -261,6 +421,13 @@ async function openDetail(batchId) {
       footer.innerHTML = `<button class="btn btn-success" onclick="API.downloadCsv('${b.id}')">⬇ Export CSV</button>`;
     }
   } catch(e) { document.getElementById('detail-body').innerHTML = `<div style="color:#DC2626;padding:20px">${e.message}</div>`; }
+}
+
+function previewReceipt(url) {
+  var previewUrl = url.replace(/\/view(\?.*)?$/, '/preview');
+  document.getElementById('receipt-view-frame').src = previewUrl;
+  document.getElementById('receipt-view-link').href = url;
+  openModal('modal-receipt-view');
 }
 
 function askApprove(id) { currentBatchId = id; document.getElementById('approve-notes').value=''; openModal('modal-approve'); }

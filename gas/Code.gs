@@ -1,19 +1,64 @@
 // ============================================================
-// Code.gs — Main GAS Web App entry point (API router)
+// Code.gs — Main GAS Web App entry point
+// (page rendering + API router)
 // ============================================================
 // Deploy as: Execute as ME, Access: Anyone
 // ============================================================
 
+// ---- Page name (?page=) → HTML file name ----
+var PAGE_FILES_ = {
+  'login':           'login',
+  'reset':           'reset',
+  'admin-dashboard': 'admin_dashboard',
+  'admin-vouchers':  'admin_vouchers',
+  'admin-users':     'admin_users',
+  'user-dashboard':  'user_dashboard',
+  'user-vouchers':   'user_vouchers',
+  'user-account':    'user_account',
+  'help':            'help'
+};
+
 function doGet(e) {
-  return handleRequest_(e, 'GET');
+  e = e || {};
+  var p = e.parameter || {};
+
+  // GET API actions (kept for backward-compat). Normal API uses POST.
+  if (p.action) return handleRequest_(e, 'GET');
+
+  // Otherwise serve an HTML page
+  return servePage_(p.page || 'login', e);
 }
 
 function doPost(e) {
   return handleRequest_(e, 'POST');
 }
 
+// Render an HTML page by its ?page= name
+function servePage_(page, e) {
+  var file = PAGE_FILES_[page] || 'login';
+  var t = HtmlService.createTemplateFromFile(file);
+  // Token passed to the reset page via the email link (?page=reset&token=...)
+  t.resetToken = (e && e.parameter && e.parameter.token) ? e.parameter.token : '';
+  return t.evaluate()
+    .setTitle('Volta Voucher')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// Deployed web app URL (/exec) — used by client config + email links
+function getAppUrl() {
+  return ScriptApp.getService().getUrl();
+}
+
+// Include + evaluate an HTML partial (processes <?= ?> scriptlets)
+function include(filename) {
+  return HtmlService.createTemplateFromFile(filename).evaluate().getContent();
+}
+
+// ============================================================
+// API ROUTER
+// ============================================================
 function handleRequest_(e, method) {
-  // CORS — return options pre-flight
   var action  = (e.parameter && e.parameter.action)  || '';
   var token   = (e.parameter && e.parameter.token)   || (e.postData && getBodyParam_(e, 'token')) || '';
 
@@ -25,7 +70,9 @@ function handleRequest_(e, method) {
     // Also accept GET parameters
     if (e.parameter) Object.keys(e.parameter).forEach(function(k) { if (!body[k]) body[k] = e.parameter[k]; });
 
-    token = token || body.token || '';
+    // API calls send action+token in the JSON body (not URL params) — must read here
+    action = action || body.action || '';
+    token  = token  || body.token  || '';
 
     var result = route_(action, token, body, e);
     return successResponse(result);
@@ -64,9 +111,22 @@ function route_(action, token, body, e) {
     case 'adminResetPassword':
       return adminResetPassword(token, body.user_id, body.new_password);
 
+    case 'adminSendPasswordReset':
+      return adminSendPasswordReset(token, body.user_id);
+
+    // ---- FORGOT / RESET PASSWORD (no auth) ----
+    case 'forgotPassword':
+      return forgotPassword(body.email);
+
+    case 'resetPassword':
+      return resetPassword(body.token, body.new_password);
+
     // ---- VOUCHER BATCHES ----
     case 'createBatch':
       return createBatch(token, body);
+
+    case 'adminCreateVoucher':
+      return adminCreateVoucher(token, body);
 
     case 'attachReceipt':
       return attachReceipt(token, body.batch_id, body.receipt_url, body.receipt_filename);
@@ -93,8 +153,8 @@ function route_(action, token, body, e) {
       return getBatchCodes(token, body.batch_id);
 
     case 'exportBatchCsv':
-      var csv = exportBatchCsv(token, body.batch_id);
-      return ContentService.createTextOutput(csv).setMimeType(ContentService.MimeType.CSV);
+      // Return the raw CSV string; the client builds a downloadable file.
+      return exportBatchCsv(token, body.batch_id);
 
     // ---- ADMIN USER MANAGEMENT ----
     case 'listUsers':

@@ -11,7 +11,10 @@
 <body>
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <div class="sidebar-logo">
+      <img data-logo class="brand-logo-side" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+    </div>
     <nav class="sidebar-nav" id="sidebar-nav"></nav>
     <div class="sidebar-footer">
       <div class="user-card">
@@ -159,8 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <a href="javascript:void(0)" onclick="goPage('help')"           class="nav-link"><span class="nav-icon">❓</span> วิธีใช้งาน</a>`;
   }
 
-  // เรียก initNavActive() หลัง nav ถูกสร้างแล้ว → active จะถูกต้อง
-  initNavActive();
+  // ระบุ 'help' ตรงๆ เพราะ nav สร้าง dynamic — getCurrentPage() อ่าน URL ไม่ได้ใน GAS iframe
+  setActiveNav('help');
 
   // ตารางรหัสมูลค่า
   const values = [['T','1'],['A','10'],['B','20'],['C','50'],['X','100'],['D','200'],['E','300'],

@@ -14,7 +14,10 @@
 
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <div class="sidebar-logo">
+      <img data-logo class="brand-logo-side" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">เมนูหลัก</div>
       <a href="javascript:void(0)" onclick="goPage('user-dashboard')" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
@@ -171,6 +174,22 @@
     <div class="modal-header"><span class="modal-title">รายละเอียดคำขอ</span><button class="modal-close" onclick="closeModal('modal-detail')">✕</button></div>
     <div class="modal-body" id="detail-body">กำลังโหลด...</div>
     <div class="modal-footer" id="detail-footer"></div>
+  </div>
+</div>
+
+<!-- MODAL: RECEIPT PREVIEW -->
+<div class="modal-overlay" id="modal-receipt-view">
+  <div class="modal modal-xl" style="height:82vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span class="modal-title">📄 ใบเสร็จ</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="receipt-view-link" href="#" target="_blank" class="btn btn-outline btn-sm">🔗 เปิดในแท็บใหม่</a>
+        <button class="modal-close" onclick="closeModal('modal-receipt-view')">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;border-radius:0 0 16px 16px">
+      <iframe id="receipt-view-frame" src="" style="width:100%;height:100%;border:none"></iframe>
+    </div>
   </div>
 </div>
 
@@ -422,7 +441,7 @@ async function openDetail(batchId) {
       </div>
       ${b.notes      ? `<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ:</strong> ${esc(b.notes)}</div>` : ''}
       ${b.admin_notes? `<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>` : ''}
-      ${b.receipt_url? `<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จ</a></div>` : ''}
+      ${b.receipt_url? `<div style="margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="previewReceipt('${b.receipt_url}')">📄 ดูใบเสร็จ</button></div>` : ''}
       ${codesHtml}`;
     const footer = document.getElementById('detail-footer');
     footer.innerHTML = '';
@@ -430,6 +449,13 @@ async function openDetail(batchId) {
     if (b.status === 'pending_receipt' || b.status === 'rejected')
       footer.innerHTML += `<button class="btn btn-primary" onclick="closeModal('modal-detail');openReceiptModal('${b.id}')">📎 แนบใบเสร็จ</button>`;
   } catch(e) { document.getElementById('detail-body').innerHTML = `<div style="color:#DC2626;padding:20px">${e.message}</div>`; }
+}
+
+function previewReceipt(url) {
+  var previewUrl = url.replace(/\/view(\?.*)?$/, '/preview');
+  document.getElementById('receipt-view-frame').src = previewUrl;
+  document.getElementById('receipt-view-link').href = url;
+  openModal('modal-receipt-view');
 }
 
 function askCancel(id) { currentBatchId = id; openModal('modal-cancel'); }

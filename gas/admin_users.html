@@ -13,7 +13,10 @@
 
 <div class="app-layout">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo"><div style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div></div>
+    <div class="sidebar-logo">
+      <img data-logo class="brand-logo-side" alt="Volta Voucher" style="display:none">
+      <div class="brand-logo-text" style="font-size:20px;font-weight:900;color:#B000D4">⚡ Volta Voucher</div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-title">Admin</div>
       <a href="javascript:void(0)" onclick="goPage('admin-dashboard')" class="nav-link"><span class="nav-icon">📊</span> ภาพรวม</a>
@@ -88,7 +91,13 @@
       </div>
       <div class="form-group"><label class="form-label">อีเมล (ใช้ login) <span class="required">*</span></label><input type="email" id="u-email" class="form-control" placeholder="example@company.com"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label" id="pw-label">รหัสผ่าน <span class="required">*</span></label><input type="password" id="u-password" class="form-control" placeholder="อย่างน้อย 8 ตัวอักษร"></div>
+        <div class="form-group" id="pw-group">
+          <label class="form-label" id="pw-label">รหัสผ่าน <span class="required">*</span></label>
+          <div class="input-wrap">
+            <input type="password" id="u-password" class="form-control" placeholder="อย่างน้อย 8 ตัวอักษร">
+            <button type="button" class="pw-toggle" onclick="togglePw('u-password',this)">👁</button>
+          </div>
+        </div>
         <div class="form-group"><label class="form-label">เบอร์ติดต่อ</label><input type="tel" id="u-phone" class="form-control" placeholder="0xx-xxx-xxxx"></div>
       </div>
       <div class="form-row">
@@ -115,17 +124,16 @@
   </div>
 </div>
 
-<!-- MODAL: RESET PASSWORD -->
+<!-- MODAL: SEND PASSWORD RESET LINK -->
 <div class="modal-overlay" id="modal-reset-pw">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-header"><span class="modal-title">🔒 รีเซ็ตรหัสผ่าน</span><button class="modal-close" onclick="closeModal('modal-reset-pw')">✕</button></div>
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><span class="modal-title">🔑 ส่งลิงก์รีเซ็ตรหัสผ่าน</span><button class="modal-close" onclick="closeModal('modal-reset-pw')">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:14px;color:#6B6B8A;margin-bottom:16px">ตั้งรหัสผ่านใหม่สำหรับ <strong id="reset-user-name"></strong></p>
-      <div class="form-group"><label class="form-label">รหัสผ่านใหม่ <span class="required">*</span></label><input type="password" id="new-reset-pw" class="form-control" placeholder="อย่างน้อย 8 ตัวอักษร"></div>
+      <p style="font-size:14px;color:#6B6B8A;line-height:1.7">ระบบจะส่งอีเมลพร้อมลิงก์สำหรับตั้งรหัสผ่านใหม่ไปยัง <strong id="reset-user-name"></strong> ผู้ใช้จะเป็นผู้ตั้งรหัสผ่านใหม่ด้วยตนเอง (ลิงก์หมดอายุภายใน 60 นาที)</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-reset-pw')">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="confirmResetPw()">🔒 รีเซ็ต</button>
+      <button class="btn btn-primary" id="btn-send-reset" onclick="confirmSendReset()">📧 ส่งลิงก์รีเซ็ต</button>
     </div>
   </div>
 </div>
@@ -214,7 +222,7 @@ function renderTable(filtered) {
         <td>
           <div style="display:flex;gap:5px;flex-wrap:wrap">
             <button class="btn-icon" title="แก้ไข" onclick="openEditModal('${u.id}')">✏️</button>
-            <button class="btn-icon" title="รีเซ็ต Password" onclick="openResetPw('${u.id}','${esc(u.first_name)} ${esc(u.last_name)}')">🔒</button>
+            <button class="btn-icon" title="ส่งลิงก์รีเซ็ตรหัสผ่าน" onclick="openResetPw('${u.id}','${esc(u.first_name)} ${esc(u.last_name)}')">🔑</button>
             ${u.is_active
               ? `<button class="btn-icon" title="ปิดใช้งาน" onclick="askDeactivate('${u.id}','${esc(u.first_name)} ${esc(u.last_name)}')" style="color:#EF4444">🚫</button>`
               : `<button class="btn-icon" title="เปิดใช้งาน" onclick="activateUser('${u.id}')" style="color:#22C55E">✅</button>`}
@@ -238,7 +246,7 @@ function changePage(p) { currentPage = p; filterUsers(); }
 function openCreateModal() {
   isEditMode = false; editingUserId = null;
   document.getElementById('modal-user-title').textContent = 'เพิ่มผู้ใช้ใหม่';
-  document.getElementById('pw-label').innerHTML = 'รหัสผ่าน <span class="required">*</span>';
+  document.getElementById('pw-group').style.display = '';        // create: ต้องตั้งรหัสผ่านเริ่มต้น
   clearUserForm();
   document.getElementById('u-email').disabled = false;
   document.getElementById('user-error').style.display = 'none';
@@ -250,7 +258,7 @@ function openEditModal(userId) {
   const u = allUsers.find(x => x.id === userId);
   if (!u) return;
   document.getElementById('modal-user-title').textContent = 'แก้ไขข้อมูลผู้ใช้';
-  document.getElementById('pw-label').innerHTML = 'รหัสผ่านใหม่ <small style="color:#9CA3AF;font-weight:400">(เว้นว่างถ้าไม่เปลี่ยน)</small>';
+  document.getElementById('pw-group').style.display = 'none';     // edit: แอดมินตั้งรหัสผ่านเองไม่ได้ ใช้ปุ่ม 🔑 ส่งลิงก์รีเซ็ตแทน
   document.getElementById('u-fname').value    = u.first_name   || '';
   document.getElementById('u-lname').value    = u.last_name    || '';
   document.getElementById('u-email').value    = u.email        || '';
@@ -303,7 +311,6 @@ async function saveUser() {
       await API.createUser({ ...params, email, password: pw });
       showToast('เพิ่มผู้ใช้สำเร็จ', 'success');
     } else {
-      if (pw) await API.adminResetPassword(editingUserId, pw);
       await API.updateUser(editingUserId, params);
       showToast('อัพเดตข้อมูลสำเร็จ', 'success');
     }
@@ -320,17 +327,27 @@ async function saveUser() {
 function openResetPw(userId, name) {
   resetPwUserId = userId;
   document.getElementById('reset-user-name').textContent = name;
-  document.getElementById('new-reset-pw').value = '';
   openModal('modal-reset-pw');
 }
-async function confirmResetPw() {
-  const pw = document.getElementById('new-reset-pw').value;
-  if (!pw || pw.length < 8) { showToast('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร', 'error'); return; }
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text';     btn.textContent = '🙈'; }
+  else                         { inp.type = 'password'; btn.textContent = '👁';  }
+}
+
+// แอดมินส่งลิงก์รีเซ็ตให้ผู้ใช้ตั้งรหัสผ่านใหม่เอง (แอดมินไม่ตั้งรหัสผ่านให้)
+async function confirmSendReset() {
+  const btn = document.getElementById('btn-send-reset');
+  btn.disabled = true; btn.textContent = 'กำลังส่ง...';
   try {
-    await API.adminResetPassword(resetPwUserId, pw);
+    const res = await API.adminSendPasswordReset(resetPwUserId);
     closeModal('modal-reset-pw');
-    showToast('รีเซ็ตรหัสผ่านสำเร็จ', 'success');
-  } catch(e) { showToast('เกิดข้อผิดพลาด: ' + e.message, 'error'); }
+    showToast('ส่งลิงก์รีเซ็ตรหัสผ่านไปยัง ' + (res && res.email ? res.email : 'อีเมลผู้ใช้') + ' แล้ว', 'success');
+  } catch(e) {
+    showToast('เกิดข้อผิดพลาด: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📧 ส่งลิงก์รีเซ็ต';
+  }
 }
 
 function askDeactivate(userId, name) {

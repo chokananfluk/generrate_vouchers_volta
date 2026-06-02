@@ -86,6 +86,22 @@
   </div>
 </div>
 
+<!-- MODAL: RECEIPT PREVIEW -->
+<div class="modal-overlay" id="modal-receipt-view">
+  <div class="modal modal-xl" style="height:82vh;display:flex;flex-direction:column">
+    <div class="modal-header" style="flex-shrink:0">
+      <span class="modal-title">📄 ใบเสร็จ</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a id="receipt-view-link" href="#" target="_blank" class="btn btn-outline btn-sm">🔗 เปิดในแท็บใหม่</a>
+        <button class="modal-close" onclick="closeModal('modal-receipt-view')">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;border-radius:0 0 16px 16px">
+      <iframe id="receipt-view-frame" src="" style="width:100%;height:100%;border:none"></iframe>
+    </div>
+  </div>
+</div>
+
 <!-- ============================================================ MODAL: DETAIL & APPROVE ============================================================ -->
 <div class="modal-overlay" id="modal-detail">
   <div class="modal modal-xl">
@@ -279,7 +295,7 @@ async function openDetail(batchId) {
       </div>
       ${b.notes?`<div style="background:#F4F0FF;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ User:</strong> ${esc(b.notes)}</div>`:''}
       ${b.admin_notes?`<div style="background:#FEF9C3;padding:12px;border-radius:8px;font-size:13px;margin-bottom:12px"><strong>หมายเหตุ Admin:</strong> ${esc(b.admin_notes)}</div>`:''}
-      ${b.receipt_url?`<div style="margin-bottom:12px"><a href="${b.receipt_url}" target="_blank" class="btn btn-outline btn-sm">📄 ดูใบเสร็จแนบ</a></div>`:'<div style="background:#FEE2E2;padding:10px;border-radius:8px;font-size:13px;color:#B91C1C;margin-bottom:12px">⚠️ ยังไม่มีใบเสร็จแนบ</div>'}
+      ${b.receipt_url?`<div style="margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="previewReceipt('${b.receipt_url}')">📄 ดูใบเสร็จแนบ</button></div>`:'<div style="background:#FEE2E2;padding:10px;border-radius:8px;font-size:13px;color:#B91C1C;margin-bottom:12px">⚠️ ยังไม่มีใบเสร็จแนบ</div>'}
       ${codesHtml}`;
 
     const footer = document.getElementById('detail-footer');
@@ -293,6 +309,13 @@ async function openDetail(batchId) {
   } catch(e) {
     document.getElementById('detail-body').innerHTML = `<div style="color:#DC2626;padding:20px">${e.message}</div>`;
   }
+}
+
+function previewReceipt(url) {
+  var previewUrl = url.replace(/\/view(\?.*)?$/, '/preview');
+  document.getElementById('receipt-view-frame').src = previewUrl;
+  document.getElementById('receipt-view-link').href = url;
+  openModal('modal-receipt-view');
 }
 
 function askApprove(id) { currentBatchId = id; document.getElementById('approve-notes').value=''; openModal('modal-approve'); }

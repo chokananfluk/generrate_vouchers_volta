@@ -35,6 +35,65 @@ function createBatch(token, params) {
   return Array.isArray(batch) ? batch[0] : batch;
 }
 
+// Admin self-service: create a batch with receipt already attached, auto-approve,
+// and generate codes immediately (no separate approval step).
+function adminCreateVoucher(token, params) {
+  var admin = requireAdmin(token);
+
+  var valueThb     = parseFloat(params.value_thb);
+  var quantity     = parseInt(params.quantity);
+  var startDate    = params.start_date   || null;
+  var expireDate   = params.expire_date  || null;
+  var durationDays = parseInt(params.duration_days) || 0;
+  var notes        = params.notes        || '';
+  var receiptUrl   = params.receipt_url  || '';
+  var receiptName  = params.receipt_filename || '';
+
+  if (!valueThb || valueThb <= 0) throw new Error('Invalid value_thb');
+  if (!quantity  || quantity  <= 0) throw new Error('Invalid quantity');
+  if (!receiptUrl) throw new Error('Receipt required');
+
+  var valueChar = getValueChar(valueThb);
+  var lotNumber = getNextLot(valueChar);
+
+  var inserted = dbInsert('voucher_batches', {
+    user_id:          admin.id,
+    value_thb:        valueThb,
+    quantity:         quantity,
+    start_date:       startDate,
+    expire_date:      expireDate,
+    duration_days:    durationDays,
+    notes:            notes,
+    status:           'approved',
+    lot_number:       lotNumber,
+    value_char:       valueChar,
+    receipt_url:      receiptUrl,
+    receipt_filename: receiptName,
+    approved_at:      new Date().toISOString(),
+    approved_by:      admin.id
+  });
+  var batch = Array.isArray(inserted) ? inserted[0] : inserted;
+
+  // Generate unique codes immediately
+  var codes = generateUniqueCodes(valueChar, lotNumber, quantity);
+  var codeRows = codes.map(function(code) {
+    return {
+      batch_id:      batch.id,
+      code:          code,
+      value_thb:     valueThb,
+      expire_date:   expireDate,
+      duration_days: durationDays
+    };
+  });
+
+  var chunkSize = 500;
+  for (var i = 0; i < codeRows.length; i += chunkSize) {
+    dbInsert('voucher_codes', codeRows.slice(i, i + chunkSize));
+  }
+
+  return { batch: batch, codesGenerated: codes.length };
+}
+
 // Attach receipt to a batch (move to pending_approval)
 function attachReceipt(token, batchId, receiptUrl, receiptFilename) {
   var user = requireAuth(token);
@@ -50,8 +109,8 @@ function attachReceipt(token, batchId, receiptUrl, receiptFilename) {
     status:           'pending_approval'
   });
 
-  // Notify admins by email
-  sendAdminApprovalEmail(batchId, user);
+  // Notify admins by email (ส่ง batch ไปด้วยเพื่อให้อีเมลแสดง value/quantity/notes)
+  sendAdminApprovalEmail(batchId, user, batch);
 
   return Array.isArray(updated) ? updated[0] : updated;
 }
