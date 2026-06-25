@@ -20,3 +20,5 @@ desktop.ini
 
 # Node (ถ้ามีใช้ในอนาคต)
 node_modules/
+.claude/
+SETUP.md
